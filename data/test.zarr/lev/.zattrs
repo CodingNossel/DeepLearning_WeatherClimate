@@ -1,0 +1,11 @@
+{
+    "CATDESC": "Vertical sigma level where 1 is the surface and 0 top of atmosphere",
+    "FIELDNAM": "Sigma level",
+    "FORMAT": "REAL*4",
+    "MONOTON": "DECREASE",
+    "UNITS": " ",
+    "VAR_TYPE": "support_data",
+    "_ARRAY_DIMENSIONS": [
+        "lev"
+    ]
+}

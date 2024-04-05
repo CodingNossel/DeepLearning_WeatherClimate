@@ -1,0 +1,16 @@
+{
+    "CATDESC": "Atmospheric temperature at the surface of Mars",
+    "DEPEND_0": "time",
+    "DEPEND_1": "lat",
+    "DEPEND_2": "lon",
+    "FIELDNAM": "Surface temperature",
+    "FORMAT": "REAL*4",
+    "MONOTON": "FALSE",
+    "UNITS": "K",
+    "VAR_TYPE": "data",
+    "_ARRAY_DIMENSIONS": [
+        "time",
+        "lat",
+        "lon"
+    ]
+}

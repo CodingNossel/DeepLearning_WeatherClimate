@@ -1,0 +1,12 @@
+{
+    "CATDESC": "Mars-Sun angle measured from Northern Hemisphere spring equinox where Ls=0",
+    "DEPEND_0": "time",
+    "FIELDNAM": "Solar longitude",
+    "FORMAT": "REAL*4",
+    "MONOTON": "INCREASE",
+    "UNITS": "Degrees",
+    "VAR_TYPE": "data",
+    "_ARRAY_DIMENSIONS": [
+        "time"
+    ]
+}

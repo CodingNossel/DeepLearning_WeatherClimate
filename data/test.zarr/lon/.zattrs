@@ -1,0 +1,11 @@
+{
+    "CATDESC": "Longitude in which positive/negative indicates eastern/western",
+    "FIELDNAM": "Longitude",
+    "FORMAT": "REAL*4",
+    "MONOTON": "INCREASE",
+    "UNITS": "Degrees",
+    "VAR_TYPE": "support_data",
+    "_ARRAY_DIMENSIONS": [
+        "lon"
+    ]
+}

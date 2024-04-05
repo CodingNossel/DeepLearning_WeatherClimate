@@ -1,0 +1,12 @@
+{
+    "CATDESC": "Mars Year, with Mars Year 1 starting on April 11, 1955",
+    "DEPEND_0": "time",
+    "FIELDNAM": "Mars Year",
+    "FORMAT": "INTEGER*4",
+    "MONOTON": "FALSE",
+    "UNITS": " ",
+    "VAR_TYPE": "data",
+    "_ARRAY_DIMENSIONS": [
+        "time"
+    ]
+}

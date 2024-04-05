@@ -1,0 +1,16 @@
+{
+    "Data_type": "M1>Modified Data 1",
+    "Data_version": "1",
+    "Descriptor": "MCS>Mars Climate Sounder + NOMAD>Nadir and Occultation for MArs Discovery + ACS>Atmospheric Chemistry Suite",
+    "Discipline": "Planetary Science>Data Assimilation",
+    "Instrument_type": "Sounder (space) + Spectrometer suite + Spectrometer suite",
+    "Logical_file_id": "openmars_my34_ls342_my34_ls358",
+    "Logical_source": "MRO_M1_MCS + TGO_M1_NOMAD + TGO_M1_ACS",
+    "Logical_source_description": "MRO Modified Data MCS + TGO Modified Data NOMAD + TGO Modified Data ACS",
+    "Mission_group": "Mars",
+    "PI_affiliation": "The Open University, UK",
+    "PI_name": "J. Holmes",
+    "Project": "OpenMARS reanalysis",
+    "Source_name": "MRO>Mars Reconnaissance Orbiter [MCS] + TGO>Trace Gas Orbiter [NOMAD + ACS]",
+    "TEXT": "Reanalysis of MCS thermal profiles and dust column data, NOMAD water vapour profiles and CO and water vapour column data and ACS water vapor and thermal profiles into the Mars PCM-UK spectral"
+}

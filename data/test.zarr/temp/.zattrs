@@ -1,0 +1,18 @@
+{
+    "CATDESC": "The temperature measured at different levels of the Mars atmosphere",
+    "DEPEND_0": "time",
+    "DEPEND_1": "lev",
+    "DEPEND_2": "lat",
+    "DEPEND_3": "lon",
+    "FIELDNAM": "Atmospheric temperature",
+    "FORMAT": "REAL*4",
+    "MONOTON": "FALSE",
+    "UNITS": "K",
+    "VAR_TYPE": "data",
+    "_ARRAY_DIMENSIONS": [
+        "time",
+        "lev",
+        "lat",
+        "lon"
+    ]
+}

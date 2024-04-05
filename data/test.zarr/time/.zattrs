@@ -1,0 +1,11 @@
+{
+    "CATDESC": "Martian sol in which sol 0 refers to the beginning of Mars year 24",
+    "FIELDNAM": "Martian sol",
+    "FORMAT": "REAL*4",
+    "MONOTON": "INCREASE",
+    "UNITS": "Sol",
+    "VAR_TYPE": "support_data",
+    "_ARRAY_DIMENSIONS": [
+        "time"
+    ]
+}

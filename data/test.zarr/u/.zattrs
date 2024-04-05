@@ -1,0 +1,18 @@
+{
+    "CATDESC": "Zonal wind with negative/positive indicating easterly/westerly winds",
+    "DEPEND_0": "time",
+    "DEPEND_1": "lev",
+    "DEPEND_2": "lat",
+    "DEPEND_3": "lon",
+    "FIELDNAM": "Zonal wind (eastward)",
+    "FORMAT": "REAL*4",
+    "MONOTON": "FALSE",
+    "UNITS": "m/s",
+    "VAR_TYPE": "data",
+    "_ARRAY_DIMENSIONS": [
+        "time",
+        "lev",
+        "lat",
+        "lon"
+    ]
+}

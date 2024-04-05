@@ -1,0 +1,11 @@
+{
+    "CATDESC": "Latitude in which positive/negative indicates northern/southern",
+    "FIELDNAM": "Latitude",
+    "FORMAT": "REAL*4",
+    "MONOTON": "DECREASE",
+    "UNITS": "Degrees",
+    "VAR_TYPE": "support_data",
+    "_ARRAY_DIMENSIONS": [
+        "lat"
+    ]
+}
