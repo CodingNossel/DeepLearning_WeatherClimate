@@ -1,18 +1,11 @@
-import numpy as np
-import matplotlib.pyplot as plt
 from pylab import *
-from scipy.io import *
 import h5netcdf
 
-# Open the netcdf file
 a = h5netcdf.File('../rawdata/openmars_my34_ls342_my34_ls358.nc', 'r')
-
-# Pull out the necessary arrays of data
 lats = a.variables['lat'][:]  # Latitude
 lons = a.variables['lon'][:]  # Longitude
 temp = a.variables['temp'][:, 10, :, :]  # Water vapour vmr at eleventh model level
 
-# Plot the last timestep of this datafile
 fig = plt.figure()
 CS1 = plt.contourf(lons, lats, temp[719, :, :], 30, cmap=plt.cm.Blues)
 cbar = plt.colorbar(CS1)
@@ -26,7 +19,6 @@ plt.xlabel(r'Longitude', fontsize=18)
 plt.yticks(arange(-60, 90, 30), ('60$^\circ$S', '30$^\circ$S', '0$^\circ$', '30$^\circ$N', '60$^\circ$N'), fontsize=16)
 plt.ylabel('Latitude', fontsize=18)
 plt.axis([-180., 175., -87.5, 87.5])
-# Set size of the figure and then write to a PNG file
 fig.set_size_inches(14, 8)
 plt.savefig('my34_ls176_temp.png', dpi=200, bbox_inches='tight', pad_inches=0.3)
 plt.close()

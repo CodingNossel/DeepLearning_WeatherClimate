@@ -6,7 +6,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 import torch_geometric
-from torch_geometric.data import pyg_data
+from torch_geometric import data
+#from torch_geometric.data import pyg_data
 import torch_geometric.nn as pyg_nn
 
 from lightning.pytorch.callbacks import ModelCheckpoint
@@ -19,6 +20,7 @@ L.seed_everything(42)
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 
+'''
 class GCNLayer(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -28,7 +30,6 @@ class GCNLayer(nn.Module):
         num_neighbours = adj_mat.sum(dim=1, keepdims=True)
         x = self.projection(x)
         x = torch.bmm(adj_mat, x)
-
         return x
     
 
@@ -39,7 +40,7 @@ class GATLayer(nn.Module):
         self.concat_heads = concat_heads
         
         if self.concat_heads:
-            assert out_channels % num_heads = 0, "Num of out features must be a multiple of the count of heads"
+            assert out_channels % num_heads == 0, "Num of out features must be a multiple of the count of heads"
             out_channels = out_channels // num_heads
 
         self.projections = nn.Linear(in_channels, out_channels * num_heads)
@@ -81,31 +82,28 @@ class GATLayer(nn.Module):
             x = x.mean(dim=2)
         
         return x
-    
+'''
 
-gnn_layer_by_name = { "GCN": pyg_nn.GCNConv, "GAT": pyg_nn.GATConv, "GraphConv" : pyg_nn.GraphConv}
+gnn_layer_by_name = {"GCN": pyg_nn.GCNConv, "GAT": pyg_nn.GATConv, "GraphConv": pyg_nn.GraphConv}
+
 
 class GNNModel(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, num_layers = 2, layer_name = "GCN", dp_rate = 0.1, **kwargs,):
+    def __init__(self, in_channels, hidden_channels, out_channels, num_layers=2, layer_name="GCN", dp_rate=0.1,
+                 **kwargs, ):
         super().__init__()
         gnn_layer = gnn_layer_by_name[layer_name]
 
-        layer = []
+        layers = []
         c_in, c_out = in_channels, hidden_channels
 
         for l_idx in range(num_layers - 1):
             layers += [gnn_layer(in_channels=c_in, out_channels=c_out, **kwargs),
                        nn.ReLU(),
-                       nn.Dropout(dp_rate),]
+                       nn.Dropout(dp_rate), ]
             c_in = hidden_channels
 
             layers += [gnn_layer(in_channels=c_in, out_channels=out_channels, **kwargs)]
             self.layers = nn.ModuleList(layers)
-
-        def forward(self, x, adj_mat):
-            for layer in self.layers:
-                x = layer(x, adj_mat)
-            return x
 
     def forward(self, x, adj_mat):
         for layer in self.layers:
@@ -113,7 +111,7 @@ class GNNModel(nn.Module):
                 x = layer(x, adj_mat)
             else:
                 x = layer(x)
-        
+
         return x
 
 
@@ -125,7 +123,7 @@ class NodeLevelGNN(L.LightningModule):
         self.model = GNNModel(**model_kwargs)
         self.loss_fn = nn.CrossEntropyLoss()
 
-    def forward(self, data, mode= "train"):
+    def forward(self, data, mode="train"):
         x, adj_mat = data.x, data.adj_mat
 
         if mode == "train":
@@ -141,35 +139,33 @@ class NodeLevelGNN(L.LightningModule):
         acc = (x[mask].argmax(dim=-1) == data.y[mask]).sum().float() / mask.sum()
 
         return loss, acc
-    
-    def config_optimizer(self):
-        #ToDo - Testing SGD
+
+    def configure_optimizers(self):
+        # ToDo - Testing SGD
         # return optim.SGD(self.model.parameters(), lr=0.01, momentum=0.9, weight_decay=2e-3)
         return optim.Adam(self.model.parameters(), lr=1e-3)
 
     def training_step(self, batch, batch_idx):
-        loss, acc = self.forward(batch, mode = "train")
+        loss, acc = self.forward(batch, mode="train")
         self.log("train_loss", loss)
         self.log("train_acc", acc)
-        
+
         return loss
-    
+
     def validation_step(self, batch, batch_idx):
-        _, acc = self.forward(batch, mode = "val")
+        _, acc = self.forward(batch, mode="val")
         self.log("val_acc", acc)
 
     def test_step(self, batch, batch_idx):
-        _, acc = self.forward(batch, mode = "test")
+        _, acc = self.forward(batch, mode="test")
         self.log("test_acc", acc)
 
 
-
-
-def train_node_classification(self, model_name, dataset, **model_kwargs):
+def train_node_classification(model_name, dataset, **model_kwargs):
     L.seed_everything(42)
-    node_data_loader = pyg_data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
-    
-    #ToDo - could change Params
+    node_data_loader = data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+
+    # ToDo - could change Params
     trainer = L.Trainer(gpus=1, callbacks=[ModelCheckpoint(save_weights_only=True, mode="max", monitor="val_acc")],
                         accelerator="auto",
                         devices=1,
@@ -181,9 +177,9 @@ def train_node_classification(self, model_name, dataset, **model_kwargs):
 
     L.seed_everything()
     model = NodeLevelGNN(
-        model_name = model_name,
-        c_in = dataset.num_node_features,
-        c_out = dataset.num_classes,
+        model_name=model_name,
+        in_channels=dataset.num_node_features,
+        out_channels=dataset.num_classes,
         **model_kwargs
     )
     trainer.fit(model, node_data_loader, node_data_loader)
@@ -199,3 +195,17 @@ def train_node_classification(self, model_name, dataset, **model_kwargs):
     res = {"train": train_acc, "val": val_acc, "test": test_res[0]["test_acc"]}
 
     return model, res
+
+# Small function for printing the test scores
+def print_results(result_dict):
+    if "train" in result_dict:
+        print("Train accuracy: %4.2f%%" % (100.0 * result_dict["train"]))
+    if "val" in result_dict:
+        print("Val accuracy:   %4.2f%%" % (100.0 * result_dict["val"]))
+    print("Test accuracy:  %4.2f%%" % (100.0 * result_dict["test"]))
+
+cora_dataset = torch_geometric.datasets.Planetoid(root="coradata", name="Cora")
+node_gnn_model, node_gnn_result = train_node_classification(
+    model_name="GNN", layer_name="GCN", dataset=cora_dataset, hidden_channels=16, num_layers=2, dp_rate=0.1
+)
+print_results(node_gnn_result)
