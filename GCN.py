@@ -12,7 +12,7 @@ import torch_geometric.nn as pyg_nn
 from lightning.pytorch.callbacks import ModelCheckpoint
 from torch import Tensor
 
-BATCHE_SIZE = 256
+BATCH_SIZE = 256
 
 L.seed_everything(42)
 
@@ -162,3 +162,40 @@ class NodeLevelGNN(L.LightningModule):
         _, acc = self.forward(batch, mode = "test")
         self.log("test_acc", acc)
 
+
+
+
+def train_node_classification(self, model_name, dataset, **model_kwargs):
+    L.seed_everything(42)
+    node_data_loader = pyg_data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+    
+    #ToDo - could change Params
+    trainer = L.Trainer(gpus=1, callbacks=[ModelCheckpoint(save_weights_only=True, mode="max", monitor="val_acc")],
+                        accelerator="auto",
+                        devices=1,
+                        max_epochs=100,
+                        enable_progress_bar=True
+                        )
+
+    trainer.logger._default_hp_metric = None
+
+    L.seed_everything()
+    model = NodeLevelGNN(
+        model_name = model_name,
+        c_in = dataset.num_node_features,
+        c_out = dataset.num_classes,
+        **model_kwargs
+    )
+    trainer.fit(model, node_data_loader, node_data_loader)
+    model = NodeLevelGNN.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
+
+    test_res = trainer.test(model, dataloaders=node_data_loader, verbose=False)
+    batch = next(iter(node_data_loader))
+    batch = batch.to(model.device)
+
+    _, train_acc = model.forward(batch, mode="train")
+    _, val_acc = model.forward(batch, mode="val")
+
+    res = {"train": train_acc, "val": val_acc, "test": test_res[0]["test_acc"]}
+
+    return model, res
