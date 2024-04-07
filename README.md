@@ -28,3 +28,7 @@ https://ieeexplore.ieee.org/document/10002657
 https://ieeexplore.ieee.org/document/10194233
 
 ### Analysis of our GNN
+
+### Notes
+
+The Healpy Lib only works on Linux and Mac
