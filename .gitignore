@@ -3,3 +3,4 @@ rawdata
 data
 .idea
 coradata
+__pycache__
