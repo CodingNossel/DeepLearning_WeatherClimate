@@ -5,3 +5,4 @@ data
 coradata
 __pycache__
 saved_models
+lightning_logs
