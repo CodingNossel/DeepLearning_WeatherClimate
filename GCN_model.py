@@ -16,7 +16,7 @@ import torch.optim as optim
 
 # PyTorch geometric
 import torch_geometric
-import torch_geometric.data as geom_data
+import torch_geometric.loader as geom_data
 import torch_geometric.nn as geom_nn
 
 # PL callbacks
@@ -155,7 +155,7 @@ def train_node_classifier(model_name, dataset, **model_kwargs):
         default_root_dir=root_dir,
         callbacks=[ModelCheckpoint(save_weights_only=True, mode="max", monitor="val_acc")],
         accelerator="auto",
-        devices=AVAIL_GPUS,
+        #devices=AVAIL_GPUS,
         max_epochs=200,
         enable_progress_bar=False,
     )  # 0 because epoch size is 1
@@ -191,8 +191,7 @@ def print_results(result_dict):
         print("Val accuracy:   %4.2f%%" % (100.0 * result_dict["val"]))
     print("Test accuracy:  %4.2f%%" % (100.0 * result_dict["test"]))
 
-node_mlp_model, node_mlp_result = train_node_classifier(
-    model_name="MLP", dataset=cora_dataset, c_hidden=16, num_layers=2, dp_rate=0.1
+node_gnn_model, node_gnn_result = train_node_classifier(
+    model_name="GNN", layer_name="GCN", dataset=cora_dataset, c_hidden=16, num_layers=2, dp_rate=0.1
 )
-
-print_results(node_mlp_result)
+print_results(node_gnn_result)

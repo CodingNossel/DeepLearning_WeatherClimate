@@ -13,6 +13,7 @@
 
 # torch.Size([32, 3, 70, 36, 72])
 
+loader_params = {'batch_size': None, 'batch_sampler': None, 'shuffle': False, 'num_workers': 1, 'pin_memory': True}
 
 # loader_params = { 'batch_size': None, 'batch_sampler': None, 'shuffle': False,  'num_workers': 1, 'pin_memory': True }
 
