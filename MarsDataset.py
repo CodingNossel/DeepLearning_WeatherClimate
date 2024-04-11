@@ -5,9 +5,8 @@ import torch.utils.data
 
 
 class MarsDataset(torch.utils.data.IterableDataset):
-    def __init__(self, path_file, batch_size):
+    def __init__(self, path_file):
         super(MarsDataset, self).__init__()
-        self.batch_size = batch_size
         store = zarr.DirectoryStore(path_file)
         self.sources = zarr.group(store=store)
         self.rng = np.random.default_rng()
@@ -19,10 +18,9 @@ class MarsDataset(torch.utils.data.IterableDataset):
         self.len = self.idxs.shape[0]
 
     def __iter__(self):
-        self.shuffle()
         iter_start, iter_end = self.worker_workset()
         source = []
-        target = []
+        target = []    
         for bidx in range(iter_start, iter_end, iter_end - iter_start):
             idx_t = self.idxs[bidx: bidx + iter_end - iter_start]
             source = torch.stack([
@@ -38,12 +36,10 @@ class MarsDataset(torch.utils.data.IterableDataset):
                 torch.tensor(self.sources['v'][idx_t])
             ], 1)
 
-        # TODO: data normalization
-
         yield source, target
 
     def __len__(self):
-        return self.len  # // self.batch_size
+        return self.len
 
     def worker_workset(self):
         worker_info = torch.utils.data.get_worker_info()
@@ -57,6 +53,88 @@ class MarsDataset(torch.utils.data.IterableDataset):
             worker_id = worker_info.id
             iter_start = int(worker_id * per_worker)
             iter_end = int(iter_start + per_worker)
-            if worker_info.id + 1 == worker_info.num_workers:
-                iter_end = int(temp)
         return iter_start, iter_end
+    
+    def get_lat(self):
+        """
+        Returns the latitude array
+        """
+        return self.sources['lat']
+    
+    def get_lev(self):
+        """
+        Returns the level array
+        """
+        return self.sources['lev']
+    
+    def get_lon(self):
+        """
+        Returns the longitude array
+        """
+        return self.sources['lon']
+
+
+def normalize_temp(temp):
+    """
+    Normalizes temperature to 0-1 range
+    """
+    return (temp - 80) / 280
+
+def normalize_wind(wind):
+    """
+    Normalizes wind to 0-1 range
+    """
+    return (wind + 200) / 450
+
+def denormalize_temp(temp):
+    """
+    Denormalizes temperature to 80-280 range
+    """
+    return (temp * 280) + 80
+
+
+def denormalize_wind(wind):
+    """
+    Denormalizes wind to (-200)-250 range
+    """
+    return (wind * 450) - 200
+
+def create_one_demension_normalized_tensor(matrix):
+    """
+    Creates a one-dimensional normalized tensor for a given 4D matrix. 
+    The matrix shape should has to be [3, 70, 36, 72]
+    retrun a one-dimensional normalized tensor
+    """
+    normal_flat = torch.tensor([], dtype=torch.float32)
+    for i in range(matrix.shape[1] - 1):
+        for j in range(matrix.shape[2] - 1): 
+            for k in range(matrix.shape[3] - 1):
+                temp = matrix[0, i, j, k].item()
+                u = matrix[1, i, j, k].item()
+                v = matrix[2, i, j, k].item()
+                norm_temp = normalize_temp(temp)
+                norm_u = normalize_wind(u)
+                norm_v = normalize_wind(v)
+                normal_flat = torch.cat((normal_flat, torch.tensor([norm_temp, norm_u, norm_v])), dim=0)
+    return normal_flat
+
+def create_denormalized_matrix_from_tensor(vector):
+    """
+    Creates a 4D matrix from a one-dimensional normalized tensor. 
+    retrun a 4D matrix with the shape [3, 70, 36, 72]
+    """
+    denormalized_matrix = torch.zeros(3, 70, 36, 72)
+    for i in range(denormalized_matrix.shape[1] - 1):
+        for j in range(denormalized_matrix.shape[2] - 1): 
+            for k in range(denormalized_matrix.shape[3] - 1):
+                idx = i * denormalized_matrix.shape[2] + denormalized_matrix.shape[3] * j + denormalized_matrix.shape[3] * k
+                norm_temp = vector[idx * 3]
+                norm_u = vector[idx * 3 + 1]
+                norm_v = vector[idx * 3 + 2]
+                temp = denormalize_temp(norm_temp)
+                u = denormalize_wind(norm_u)
+                v = denormalize_wind(norm_v)
+                denormalized_matrix[0, i, j, k] = temp
+                denormalized_matrix[1, i, j, k] = u
+                denormalized_matrix[2, i, j, k] = v
+    return denormalized_matrix
