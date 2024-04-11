@@ -14,6 +14,14 @@ if __name__ == "__main__":
         for i in range(source.shape[0]):
             print(source[i].shape)
             print(target[i].shape)
+            one_s = create_one_demension_normalized_tensor(source[i])
+            one_t = create_one_demension_normalized_tensor(target[i])
+            print(one_s)
+            print(one_t)
+            mat_s = create_denormalized_matrix_from_tensor(one_s)
+            mat_t = create_denormalized_matrix_from_tensor(one_t)
+            print(mat_s.shape)
+            print(mat_t.shape)
     
 ## values for normalisation
 # max_temp = tensor(261.5564)  # 262.3379211425781     # 280
