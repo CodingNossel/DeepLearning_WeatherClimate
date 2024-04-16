@@ -11,7 +11,7 @@ if __name__ == "__main__":
     for bidx, (source, target) in enumerate(data_loader_iter):
         print("Batch Index:", bidx)
         ## Iteriert über jeden Zeitschritt. Hier können source[i] und target[i] aufgerufen werden.
-        for i in range(source.shape[0]):
+        """ for i in range(source.shape[0]):
             print(source[i].shape)
             print(target[i].shape)
             one_s = create_one_demension_normalized_tensor(source[i])
@@ -21,7 +21,9 @@ if __name__ == "__main__":
             mat_s = create_denormalized_matrix_from_tensor(one_s)
             mat_t = create_denormalized_matrix_from_tensor(one_t)
             print(mat_s.shape)
-            print(mat_t.shape)
+            print(mat_t.shape) """
+        print(source.shape)
+        print(target.shape)
     
 ## values for normalisation
 # max_temp = tensor(261.5564)  # 262.3379211425781     # 280

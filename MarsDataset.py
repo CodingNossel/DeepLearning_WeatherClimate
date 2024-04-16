@@ -19,22 +19,33 @@ class MarsDataset(torch.utils.data.IterableDataset):
 
     def __iter__(self):
         iter_start, iter_end = self.worker_workset()
-        source = []
-        target = []    
+        source = None
+        target = None    
         for bidx in range(iter_start, iter_end, iter_end - iter_start):
             idx_t = self.idxs[bidx: bidx + iter_end - iter_start]
-            source = torch.stack([
+            source_m = torch.stack([
                 torch.tensor(self.sources['temp'][idx_t]),
                 torch.tensor(self.sources['u'][idx_t]),
                 torch.tensor(self.sources['v'][idx_t])
             ], 1)
+            for i in range(source_m.shape[0]):
+                if source is None or source.numel() == 0:
+                    source = create_one_demension_normalized_tensor(source_m[i]).unsqueeze(0)
+                else:
+                    source = torch.cat((source, create_one_demension_normalized_tensor(source_m[i]).unsqueeze(0)), dim=0)
+
             # target is subsequent time step
             idx_t += 1
-            target = torch.stack([
+            target_m = torch.stack([
                 torch.tensor(self.sources['temp'][idx_t]),
                 torch.tensor(self.sources['u'][idx_t]),
                 torch.tensor(self.sources['v'][idx_t])
             ], 1)
+            for i in range(target_m.shape[0]):
+                if target is None or target.numel() == 0:
+                    target = create_one_demension_normalized_tensor(target_m[i]).unsqueeze(0)
+                else:
+                    target = torch.cat((target, create_one_demension_normalized_tensor(target_m[i]).unsqueeze(0)), dim=0)
 
         yield source, target
 
