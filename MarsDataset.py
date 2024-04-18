@@ -32,6 +32,7 @@ class MarsDataset(torch.utils.data.IterableDataset):
             source = source.transpose(1, 3).transpose(2, 4)
             # source = source[..., :10]
             source = np.reshape(source, (self.batch_size, source.shape[1], source.shape[2], -1))
+            source = source.transpose(1, 2).transpose(1, 3)
 
             # target is subsequent time step
             idx_t += 1
@@ -43,6 +44,7 @@ class MarsDataset(torch.utils.data.IterableDataset):
             target = target.transpose(1, 3).transpose(2, 4)
             # target = target[..., :10]
             target = np.reshape(target, (self.batch_size, target.shape[1], target.shape[2], -1))
+            target = target.transpose(1, 2).transpose(1, 3)
 
             ## to transform back np.reshape(source, (8, 36, 72, 3, 70))
             yield source, target
