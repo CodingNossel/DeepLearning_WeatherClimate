@@ -5,8 +5,9 @@ import torch.utils.data
 
 
 class MarsDataset(torch.utils.data.IterableDataset):
-    def __init__(self, path_file):
+    def __init__(self, path_file, batch_size):
         super(MarsDataset, self).__init__()
+        self.batch_size = batch_size
         store = zarr.DirectoryStore(path_file)
         self.sources = zarr.group(store=store)
         self.rng = np.random.default_rng()
@@ -20,34 +21,32 @@ class MarsDataset(torch.utils.data.IterableDataset):
     def __iter__(self):
         iter_start, iter_end = self.worker_workset()
         source = None
-        target = None    
-        for bidx in range(iter_start, iter_end, iter_end - iter_start):
-            idx_t = self.idxs[bidx: bidx + iter_end - iter_start]
-            source_m = torch.stack([
-                torch.tensor(self.sources['temp'][idx_t]),
-                torch.tensor(self.sources['u'][idx_t]),
-                torch.tensor(self.sources['v'][idx_t])
+        target = None
+        for bidx in range(iter_start, iter_end, self.batch_size):
+            idx_t = self.idxs[bidx: bidx + self.batch_size]
+            source = torch.stack([
+                torch.tensor(np.array([normalize_temp(x) for x in self.sources['temp'][idx_t]])),
+                torch.tensor(np.array([normalize_wind(x) for x in self.sources['u'][idx_t]])),
+                torch.tensor(np.array([normalize_wind(x) for x in self.sources['v'][idx_t]]))
             ], 1)
-            for i in range(source_m.shape[0]):
-                if source is None or source.numel() == 0:
-                    source = create_one_demension_normalized_tensor(source_m[i]).unsqueeze(0)
-                else:
-                    source = torch.cat((source, create_one_demension_normalized_tensor(source_m[i]).unsqueeze(0)), dim=0)
+            source = source.transpose(1, 3).transpose(2, 4)
+            source = source[..., :10]
+            source = np.reshape(source, (self.batch_size, source.shape[1], source.shape[2], -1))
+
 
             # target is subsequent time step
             idx_t += 1
-            target_m = torch.stack([
-                torch.tensor(self.sources['temp'][idx_t]),
-                torch.tensor(self.sources['u'][idx_t]),
-                torch.tensor(self.sources['v'][idx_t])
+            target = torch.stack([
+                torch.tensor(np.array([normalize_temp(x) for x in self.sources['temp'][idx_t]])),
+                torch.tensor(np.array([normalize_wind(x) for x in self.sources['u'][idx_t]])),
+                torch.tensor(np.array([normalize_wind(x) for x in self.sources['v'][idx_t]]))
             ], 1)
-            for i in range(target_m.shape[0]):
-                if target is None or target.numel() == 0:
-                    target = create_one_demension_normalized_tensor(target_m[i]).unsqueeze(0)
-                else:
-                    target = torch.cat((target, create_one_demension_normalized_tensor(target_m[i]).unsqueeze(0)), dim=0)
+            target = target.transpose(1, 3).transpose(2, 4)
+            target = target[..., :10]
+            target = np.reshape(target, (self.batch_size, target.shape[1], target.shape[2], -1))
 
-        yield source, target
+            ## to transform back np.reshape(source, (8, 36, 72, 3, 70))
+            yield source, target
 
     def __len__(self):
         return self.len
@@ -60,10 +59,16 @@ class MarsDataset(torch.utils.data.IterableDataset):
         else:
             # split workload
             temp = len(self)
-            per_worker = int(np.floor(temp / float(worker_info.num_workers)))
-            worker_id = worker_info.id
-            iter_start = int(worker_id * per_worker)
-            iter_end = int(iter_start + per_worker)
+            per_worker = ((int(temp / float(worker_info.num_workers)) // self.batch_size) * self.batch_size) + self.batch_size
+            if worker_info.id+1 == worker_info.num_workers:
+                # per_worker = int(temp // float(worker_info.num_workers)) - (int(temp // float(worker_info.num_workers)) % self.batch_size)
+                iter_end = int(temp)
+                iter_start = int(iter_end - per_worker)
+            else:
+                worker_id = worker_info.id
+                iter_start = int(worker_id * per_worker)
+                iter_end = int(iter_start + per_worker)
+
         return iter_start, iter_end
     
     def get_lat(self):

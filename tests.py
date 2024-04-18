@@ -2,14 +2,16 @@ from MarsDataset import MarsDataset, create_one_demension_normalized_tensor, cre
 import torch.utils.data
 
 if __name__ == "__main__":
-    ds = MarsDataset('data/test.zarr')
+    ds = MarsDataset('data/test.zarr', 8)
 
-    loader_params = {'batch_size': None, 'batch_sampler': None, 'shuffle': False, 'num_workers': 4, 'pin_memory': True}
+    loader_params = {'batch_size': None, 'batch_sampler': None, 'shuffle': False, 'num_workers': 8, 'pin_memory': True}
     data_loader = torch.utils.data.DataLoader(ds, **loader_params, sampler=None)
     data_loader_iter = iter(data_loader)
 
     for bidx, (source, target) in enumerate(data_loader_iter):
         print("Batch Index:", bidx)
+        print(source.shape)
+        print(target.shape)
         ## Iteriert über jeden Zeitschritt. Hier können source[i] und target[i] aufgerufen werden.
         """ for i in range(source.shape[0]):
             print(source[i].shape)
@@ -22,8 +24,18 @@ if __name__ == "__main__":
             mat_t = create_denormalized_matrix_from_tensor(one_t)
             print(mat_s.shape)
             print(mat_t.shape) """
-        print(source.shape)
-        print(target.shape)
+        # print(source[0][0][0][0][1])
+        # print(source[0][0][0][1][0])
+        # print(source[0][0][0][0])
+        # print(source[0][0][0][1])
+        # print(source[0][0][0][2])
+        # print(source[0][0][0][160])
+        # print(target[0][0][0][0])
+        # print(target[0][0][0][70])
+        # print(target[0][0][0][90])
+        # print(target[0][0][0][140])
+        # print(target[0][0][0][0][1])
+        # print(target[0][0][0][1][0])
     
 ## values for normalisation
 # max_temp = tensor(261.5564)  # 262.3379211425781     # 280
