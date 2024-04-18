@@ -33,7 +33,6 @@ class MarsDataset(torch.utils.data.IterableDataset):
             source = source[..., :10]
             source = np.reshape(source, (self.batch_size, source.shape[1], source.shape[2], -1))
 
-
             # target is subsequent time step
             idx_t += 1
             target = torch.stack([
@@ -81,7 +80,91 @@ class MarsDataset(torch.utils.data.IterableDataset):
         """
         Returns the level array
         """
-        return self.sources['lev']
+        return self.sources['lev'][:10]
+    
+    def get_lon(self):
+        """
+        Returns the longitude array
+        """
+        return self.sources['lon']
+
+class MarsDatasetLevel(torch.utils.data.IterableDataset):
+    def __init__(self, path_file, batch_size, levels):
+        super(MarsDatasetLevel, self).__init__()
+        self.batch_size = batch_size
+        self.levels = levels
+        store = zarr.DirectoryStore(path_file)
+        self.sources = zarr.group(store=store)
+        self.rng = np.random.default_rng()
+        self.shuffle()
+
+    def shuffle(self):
+        len = self.sources['time'].shape[0]
+        self.idxs = self.rng.permutation(np.arange(len - 1))
+        self.len = self.idxs.shape[0]
+
+    def __iter__(self):
+        iter_start, iter_end = self.worker_workset()
+        source = None
+        target = None
+        for bidx in range(iter_start, iter_end, self.batch_size):
+            idx_t = self.idxs[bidx: bidx + self.batch_size]
+            source = torch.stack([
+                torch.tensor(np.array([normalize_temp(x) for x in self.sources['temp'][idx_t]])),
+                torch.tensor(np.array([normalize_wind(x) for x in self.sources['u'][idx_t]])),
+                torch.tensor(np.array([normalize_wind(x) for x in self.sources['v'][idx_t]]))
+            ], 1)
+            source = source.transpose(1, 3).transpose(2, 4)
+            source = source[..., :self.levels]
+            source = source.transpose(3, 4)
+
+            # target is subsequent time step
+            idx_t += 1
+            target = torch.stack([
+                torch.tensor(np.array([normalize_temp(x) for x in self.sources['temp'][idx_t]])),
+                torch.tensor(np.array([normalize_wind(x) for x in self.sources['u'][idx_t]])),
+                torch.tensor(np.array([normalize_wind(x) for x in self.sources['v'][idx_t]]))
+            ], 1)
+            target = target.transpose(1, 3).transpose(2, 4)
+            target = target[..., :self.levels]
+            target = target.transpose(3, 4)
+
+            yield source, target
+
+    def __len__(self):
+        return self.len
+
+    def worker_workset(self):
+        worker_info = torch.utils.data.get_worker_info()
+        if worker_info is None:
+            iter_start = 0
+            iter_end = len(self)
+        else:
+            # split workload
+            temp = len(self)
+            per_worker = ((int(temp / float(worker_info.num_workers)) // self.batch_size) * self.batch_size) + self.batch_size
+            if worker_info.id+1 == worker_info.num_workers:
+                # per_worker = int(temp // float(worker_info.num_workers)) - (int(temp // float(worker_info.num_workers)) % self.batch_size)
+                iter_end = int(temp)
+                iter_start = int(iter_end - per_worker)
+            else:
+                worker_id = worker_info.id
+                iter_start = int(worker_id * per_worker)
+                iter_end = int(iter_start + per_worker)
+
+        return iter_start, iter_end
+    
+    def get_lat(self):
+        """
+        Returns the latitude array
+        """
+        return self.sources['lat']
+    
+    def get_lev(self):
+        """
+        Returns the level array
+        """
+        return self.sources['lev'][:self.levels]
     
     def get_lon(self):
         """
