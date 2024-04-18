@@ -30,7 +30,7 @@ class MarsDataset(torch.utils.data.IterableDataset):
                 torch.tensor(np.array([normalize_wind(x) for x in self.sources['v'][idx_t]]))
             ], 1)
             source = source.transpose(1, 3).transpose(2, 4)
-            source = source[..., :10]
+            # source = source[..., :10]
             source = np.reshape(source, (self.batch_size, source.shape[1], source.shape[2], -1))
 
             # target is subsequent time step
@@ -41,7 +41,7 @@ class MarsDataset(torch.utils.data.IterableDataset):
                 torch.tensor(np.array([normalize_wind(x) for x in self.sources['v'][idx_t]]))
             ], 1)
             target = target.transpose(1, 3).transpose(2, 4)
-            target = target[..., :10]
+            # target = target[..., :10]
             target = np.reshape(target, (self.batch_size, target.shape[1], target.shape[2], -1))
 
             ## to transform back np.reshape(source, (8, 36, 72, 3, 70))
@@ -80,7 +80,8 @@ class MarsDataset(torch.utils.data.IterableDataset):
         """
         Returns the level array
         """
-        return self.sources['lev'][:10]
+        # return self.sources['lev'][:10]
+        return self.sources['lev']
     
     def get_lon(self):
         """
