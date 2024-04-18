@@ -23,6 +23,8 @@ class MarsDataset(torch.utils.data.IterableDataset):
         source = None
         target = None
         for bidx in range(iter_start, iter_end, self.batch_size):
+            if bidx + self.batch_size >= iter_end:
+                bidx = iter_end - self.batch_size
             idx_t = self.idxs[bidx: bidx + self.batch_size]
             source = torch.stack([
                 torch.tensor(np.array([normalize_temp(x) for x in self.sources['temp'][idx_t]])),
@@ -45,7 +47,8 @@ class MarsDataset(torch.utils.data.IterableDataset):
             # target = target[..., :10]
             target = np.reshape(target, (self.batch_size, target.shape[1], target.shape[2], -1))
             target = target.transpose(1, 2).transpose(1, 3)
-
+            
+            idx_t -= 1
             ## to transform back np.reshape(source, (8, 36, 72, 3, 70))
             yield source, target
 
