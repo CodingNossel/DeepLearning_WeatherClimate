@@ -4,7 +4,6 @@ from torch.nn import Conv2d, MaxPool2d, BatchNorm2d, ConvTranspose2d, ReLU, Modu
 from torch.utils.data import random_split
 
 from MarsDataset import MarsDataset
-import lightning as L
 
 
 class Encoder(Module):
@@ -116,24 +115,20 @@ optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 criterion = torch.nn.CrossEntropyLoss()
 
 for epoch in range(EPOCHS):
-    print("Start Epoch {}. Datensatz: {}".format(epoch + 1, len(dataset)))
-    # model.train()
+    print("Start Epoch {}.".format(epoch + 1))
     epoch_loss = 0
     last_batch = None
     first = True
     count = 1
     for batch in dataset:
-        print(batch[0].shape, batch[1].shape)
-        #count += 1
-        #optimizer.zero_grad()
-        #prediction = model(batch[0])
-        #label = batch[1]
-        #loss = criterion(prediction, label)
-        #loss.backward()
-        #print("trying")
-        #optimizer.step()
-        #print("failing")
-        #epoch_loss += loss.detach().item()
+        count += 1
+        optimizer.zero_grad()
+        prediction = model(batch[0])
+        label = batch[1]
+        loss = criterion(prediction, label)
+        loss.backward()
+        optimizer.step()
+        epoch_loss += loss.detach().item()
     epoch_loss /= len(dataset)
     print("Epoch {}. Loss: {:.4f}.".format(epoch + 1, epoch_loss))
 
