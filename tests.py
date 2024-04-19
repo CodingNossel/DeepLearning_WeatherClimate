@@ -1,10 +1,11 @@
-from MarsDataset import MarsDataset, create_one_demension_normalized_tensor, create_denormalized_matrix_from_tensor
+from MarsDataset import MarsDataset, MarsDatasetLevel, create_one_demension_normalized_tensor, create_denormalized_matrix_from_tensor
 import torch.utils.data
 
 if __name__ == "__main__":
-    ds = MarsDataset('data/test.zarr', 8)
+    testdata = ['data/my27.zarr', 'data/my27.zarr', 'data/my27.zarr']
+    ds = MarsDataset(testdata, 20)
 
-    loader_params = {'batch_size': None, 'batch_sampler': None, 'shuffle': False, 'num_workers': 8, 'pin_memory': True}
+    loader_params = {'batch_size': None, 'batch_sampler': None, 'shuffle': False, 'num_workers': 4, 'pin_memory': True}
     data_loader = torch.utils.data.DataLoader(ds, **loader_params, sampler=None)
     data_loader_iter = iter(data_loader)
 

@@ -8,29 +8,49 @@ class MarsDataset(torch.utils.data.IterableDataset):
     def __init__(self, path_file, batch_size):
         super(MarsDataset, self).__init__()
         self.batch_size = batch_size
-        store = zarr.DirectoryStore(path_file)
-        self.sources = zarr.group(store=store)
+
+        self.sources = []
+        for file in path_file:
+            store = zarr.DirectoryStore(file)
+            self.sources.append(zarr.group(store=store))
+
+        self.models = len(self.sources)
+
+        # use the length of time for the model length for every model
+        self.model_len = self.sources[0]['time'].shape[0]
+
         self.rng = np.random.default_rng()
         self.shuffle()
 
     def shuffle(self):
-        len = self.sources['time'].shape[0]
+        # calculate the length of the whole dataset
+        len = self.models * self.model_len
         self.idxs = self.rng.permutation(np.arange(len - 1))
         self.len = self.idxs.shape[0]
 
     def __iter__(self):
         iter_start, iter_end = self.worker_workset()
-        source = None
-        target = None
+        source = []
+        target = []
         for bidx in range(iter_start, iter_end, self.batch_size):
             if bidx + self.batch_size >= iter_end:
                 bidx = iter_end - self.batch_size
             idx_t = self.idxs[bidx: bidx + self.batch_size]
-            source = torch.stack([
-                torch.tensor(np.array([normalize_temp(x) for x in self.sources['temp'][idx_t]])),
-                torch.tensor(np.array([normalize_wind(x) for x in self.sources['u'][idx_t]])),
-                torch.tensor(np.array([normalize_wind(x) for x in self.sources['v'][idx_t]]))
-            ], 1)
+            mod_len = self.model_len
+            for mid, model in enumerate(self.sources):
+                temp_idx_t = [val for val in idx_t if mid * mod_len <= val < (mid + 1) * mod_len]
+                new_idx_t = np.array([x - mid * mod_len for x in temp_idx_t])
+                stack = torch.stack([
+                    torch.tensor(np.array([normalize_temp(x) for x in model['temp'][new_idx_t]])),
+                    torch.tensor(np.array([normalize_wind(x) for x in model['u'][new_idx_t]])),
+                    torch.tensor(np.array([normalize_wind(x) for x in model['v'][new_idx_t]]))
+                ], 1)
+
+                if mid == 0:
+                    source = stack
+                else:
+                    source = torch.cat((source, stack), 0)
+            
             source = source.transpose(1, 3).transpose(2, 4)
             # source = source[..., :10]
             source = np.reshape(source, (self.batch_size, source.shape[1], source.shape[2], -1))
@@ -38,11 +58,21 @@ class MarsDataset(torch.utils.data.IterableDataset):
 
             # target is subsequent time step
             idx_t += 1
-            target = torch.stack([
-                torch.tensor(np.array([normalize_temp(x) for x in self.sources['temp'][idx_t]])),
-                torch.tensor(np.array([normalize_wind(x) for x in self.sources['u'][idx_t]])),
-                torch.tensor(np.array([normalize_wind(x) for x in self.sources['v'][idx_t]]))
-            ], 1)
+
+            for mid, model in enumerate(self.sources):
+                temp_idx_t = [val for val in idx_t if mid * mod_len <= val < (mid + 1) * mod_len]
+                new_idx_t = np.array([x - mid * mod_len for x in temp_idx_t])
+                stack = torch.stack([
+                    torch.tensor(np.array([normalize_temp(x) for x in model['temp'][new_idx_t]])),
+                    torch.tensor(np.array([normalize_wind(x) for x in model['u'][new_idx_t]])),
+                    torch.tensor(np.array([normalize_wind(x) for x in model['v'][new_idx_t]]))
+                ], 1)
+
+                if mid == 0:
+                    target = stack
+                else:
+                    target = torch.cat((target, stack), 0)
+
             target = target.transpose(1, 3).transpose(2, 4)
             # target = target[..., :10]
             target = np.reshape(target, (self.batch_size, target.shape[1], target.shape[2], -1))

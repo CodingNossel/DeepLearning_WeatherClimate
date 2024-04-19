@@ -103,7 +103,7 @@ device = torch.device('cuda' if AVAIL_GPUS else 'cpu')
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-dataset = MarsDataset(path_file=DATASET_PATH, batch_size=BATCH_SIZE)
+dataset = MarsDataset(path_file=[DATASET_PATH, DATASET_PATH], batch_size=BATCH_SIZE)
 # train_len = int(len(dataset) * 0.7)
 # test_len = len(dataset) - train_len
 # train, test = random_split(dataset, [train_len, test_len], generator=torch.Generator().manual_seed(42))
