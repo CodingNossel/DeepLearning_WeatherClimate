@@ -1,4 +1,4 @@
-from MarsDataset import MarsDataset, MarsDatasetArray, MarsDatasetLevel, create_one_demension_normalized_tensor, create_denormalized_matrix_from_tensor
+from unet/MarsDataset import MarsDataset, create_one_demension_normalized_tensor, create_denormalized_matrix_from_tensor
 import torch.utils.data
 
 if __name__ == "__main__":

@@ -2,8 +2,6 @@
 import os
 
 # For downloading pre-trained models
-import urllib.request
-from urllib.error import HTTPError
 
 # PyTorch Lightning
 import lightning as L
@@ -11,7 +9,6 @@ import lightning as L
 # PyTorch
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 
 # PyTorch geometric
@@ -21,7 +18,8 @@ import torch_geometric.nn as geom_nn
 
 # PL callbacks
 from lightning.pytorch.callbacks import ModelCheckpoint
-from torch import Tensor
+
+from unet.MarsDataset import MarsDataset
 
 AVAIL_GPUS = min(1, torch.cuda.device_count())
 BATCH_SIZE = 256 if AVAIL_GPUS else 64
@@ -101,10 +99,7 @@ class NodeLevelGNN(L.LightningModule):
         # Saving hyperparameters
         self.save_hyperparameters()
 
-        if model_name == "MLP":
-            self.model = MLPModel(**model_kwargs)
-        else:
-            self.model = GNNModel(**model_kwargs)
+        self.model = GNNModel(**model_kwargs)
         self.loss_module = nn.CrossEntropyLoss()
 
     def forward(self, data, mode="train"):
@@ -191,7 +186,9 @@ def print_results(result_dict):
         print("Val accuracy:   %4.2f%%" % (100.0 * result_dict["val"]))
     print("Test accuracy:  %4.2f%%" % (100.0 * result_dict["test"]))
 
+data = MarsDataset("data/test.zarr", 8)
+
 node_gnn_model, node_gnn_result = train_node_classifier(
-    model_name="GNN", layer_name="GCN", dataset=cora_dataset, c_hidden=16, num_layers=2, dp_rate=0.1
+    model_name="GNN", layer_name="GCN", dataset=data, c_hidden=16, num_layers=2, dp_rate=0.1
 )
 print_results(node_gnn_result)
