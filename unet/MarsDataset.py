@@ -368,6 +368,8 @@ def create_one_demension_normalized_tensor(matrix):
                 normal_flat = torch.cat((normal_flat, torch.tensor([norm_temp, norm_u, norm_v])), dim=0)
     return normal_flat
 
+## Funktion zum Zurückformatieren in eine nicht normalisierte Matrix muss noch überarbeitet werden
+## TODO
 def create_denormalized_matrix_from_tensor(vector):
     """
     Creates a 4D matrix from a one-dimensional normalized tensor. 
