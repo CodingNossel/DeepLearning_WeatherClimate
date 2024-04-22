@@ -4,6 +4,14 @@ import zarr
 import torch.utils.data
 
 class MarsDataset(torch.utils.data.IterableDataset):
+    """
+    Iterable Dataset for the OpenMARS weather Dataset.  
+
+    Args:
+        path_file (str): Path to the zarr.
+        batch_size (int): Batch size for each iteration.
+        level_from_bottom (int, optional): Number of levels from the bottom. Defaults to 35.
+    """
     def __init__(self, path_file, batch_size, level_from_bottom=35):
         super(MarsDataset, self).__init__()
         self.batch_size = batch_size
@@ -99,6 +107,14 @@ class MarsDataset(torch.utils.data.IterableDataset):
 
 
 class MarsDatasetArray(torch.utils.data.IterableDataset):
+    """
+    Iterable Dataset for the OpenMARS weather Dataset.  
+
+    Args:
+        path_file (str): Array with paths to zarr. Each zarr should have the same shape.
+        batch_size (int): Batch size for each iteration.
+        level_from_bottom (int, optional): Number of levels from the bottom. Defaults to 35.
+    """
     def __init__(self, path_file, batch_size, level_from_bottom=35):
         super(MarsDatasetArray, self).__init__()
         self.batch_size = batch_size

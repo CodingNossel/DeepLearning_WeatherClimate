@@ -7,6 +7,13 @@ from MarsDataset import MarsDataset
 
 
 class Encoder(Module):
+    """
+    Encoder module for the U-Net architecture, responsible for downsampling and feature extraction.
+
+    Args:
+        inputs (int): Number of input channels/features.
+        kernel_size (int or tuple): Size of the convolutional kernels.
+    """
     def __init__(self, inputs, kernel_size):
         super().__init__()
         self.conv1 = Sequential(
@@ -29,6 +36,13 @@ class Encoder(Module):
 
 
 class Decoder(Module):
+    """
+    Decoder module for the U-Net architecture, responsible for upsampling and feature extraction.
+
+    Args:
+        inputs (int): Number of input channels/features.
+        kernel_size (int or tuple): Size of the convolutional kernels.
+    """
     def __init__(self, inputs, kernel_size):
         super().__init__()
         self.up_conv = ConvTranspose2d(inputs, inputs // 2, kernel_size=(2, 2), stride=(2, 2))
@@ -51,6 +65,12 @@ class Decoder(Module):
 
 
 class UNet(Module):
+    """
+    Implementation of a U-Net architecture for semantic segmentation.
+
+    Args:
+        kernel_size (int or tuple): Size of the convolutional kernels.
+    """
     def __init__(self, kernel_size):
         super(UNet, self).__init__()
         self.enc1 = Encoder(105, kernel_size)
@@ -103,7 +123,7 @@ device = torch.device('cuda' if AVAIL_GPUS else 'cpu')
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-dataset = MarsDataset(path_file=[DATASET_PATH, DATASET_PATH], batch_size=BATCH_SIZE)
+dataset = MarsDataset(path_file=DATASET_PATH, batch_size=BATCH_SIZE, level_from_bottom=35)
 # train_len = int(len(dataset) * 0.7)
 # test_len = len(dataset) - train_len
 # train, test = random_split(dataset, [train_len, test_len], generator=torch.Generator().manual_seed(42))

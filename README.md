@@ -5,6 +5,28 @@ Otto-von-Guericke-Universität Magdeburg\
 April 2024\
 Deep Learning for Weather and Climate
 
+## Installation
+We recomend that you use a virtual environment with Python 3.10. After you have setup the virtual environment, you can install the required packages with
+```bash
+pip install -r requirements.txt
+```
+You will need a Dataset to run the UNet. You can download it from [here](https://ordo.open.ac.uk/collections/OpenMARS_database/4278950/5). The Data is in the .nc file format. For better and faster access, we are using the .zarr file format. To convert the .nc file to .zarr file, you can use this [repository](https://github.com/bcdev/nc2zarr.git). When you have downloaded the repository you can install the required packages.
+```bash
+pip install numpy pandas pyyaml retry xarray zarr pytest pytest-cov s3fs netcdf4 fsspec dask click
+```
+For the repository to run you will need to go to the root for the repository and run
+```bash
+python setup.py develop
+```
+To run the conversion of the .nc file to .zarr file, you can use the following command
+```bash
+nc2zarr ./download/*.nc -o marstraining.zarr
+```
+You can now copy the .zarr file into the /data folder of this repository.
+
+## Usage
+When you want to train the UNet you will just need to activate the virtual environment and run the unet.py. Before you can run the unet.py you should check the environment variables in the unet.py file.
+
 ### Weather on Mars
 
 https://www.wetteronline.de/astronews/eisige-staubwueste-ohne-wasser-wetter-und-klima-auf-dem-mars-2018-11-25-ma
