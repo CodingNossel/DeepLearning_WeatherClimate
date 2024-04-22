@@ -4,12 +4,16 @@ import zarr
 import torch.utils.data
 
 class MarsDataset(torch.utils.data.IterableDataset):
-    def __init__(self, path_file, batch_size):
+    def __init__(self, path_file, batch_size, level_from_bottom=35):
         super(MarsDataset, self).__init__()
         self.batch_size = batch_size
         store = zarr.DirectoryStore(path_file)
         self.sources = zarr.group(store=store)
         self.rng = np.random.default_rng()
+        if self.sources['lev'].shape[0] <= level_from_bottom:
+            self.levels = self.sources['lev'].shape[0]
+        else:
+            self.levels = level_from_bottom
         self.shuffle()
 
     def shuffle(self):
@@ -31,7 +35,7 @@ class MarsDataset(torch.utils.data.IterableDataset):
                 torch.tensor(np.array([normalize_wind(x) for x in self.sources['v'][idx_t]]))
             ], 1)
             source = source.transpose(1, 3).transpose(2, 4)
-            # source = source[..., :10]
+            source = source[..., :self.levels]
             source = np.reshape(source, (self.batch_size, source.shape[1], source.shape[2], -1))
             source = source.transpose(1, 2).transpose(1, 3)
 
@@ -43,7 +47,7 @@ class MarsDataset(torch.utils.data.IterableDataset):
                 torch.tensor(np.array([normalize_wind(x) for x in self.sources['v'][idx_t]]))
             ], 1)
             target = target.transpose(1, 3).transpose(2, 4)
-            # target = target[..., :10]
+            target = target[..., :self.levels]
             target = np.reshape(target, (self.batch_size, target.shape[1], target.shape[2], -1))
             target = target.transpose(1, 2).transpose(1, 3)
             
@@ -95,7 +99,7 @@ class MarsDataset(torch.utils.data.IterableDataset):
 
 
 class MarsDatasetArray(torch.utils.data.IterableDataset):
-    def __init__(self, path_file, batch_size):
+    def __init__(self, path_file, batch_size, level_from_bottom=35):
         super(MarsDatasetArray, self).__init__()
         self.batch_size = batch_size
 
@@ -108,6 +112,11 @@ class MarsDatasetArray(torch.utils.data.IterableDataset):
 
         # use the length of time for the model length for every model
         self.model_len = self.sources[0]['time'].shape[0]
+
+        if self.sources[0]['lev'].shape[0] <= level_from_bottom:
+            self.levels = self.sources[0]['lev'].shape[0]
+        else:
+            self.levels = level_from_bottom
 
         self.rng = np.random.default_rng()
         self.shuffle()
@@ -142,7 +151,7 @@ class MarsDatasetArray(torch.utils.data.IterableDataset):
                     source = torch.cat((source, stack), 0)
             
             source = source.transpose(1, 3).transpose(2, 4)
-            # source = source[..., :10]
+            source = source[..., :self.levels]
             source = np.reshape(source, (self.batch_size, source.shape[1], source.shape[2], -1))
             source = source.transpose(1, 2).transpose(1, 3)
 
@@ -164,7 +173,7 @@ class MarsDatasetArray(torch.utils.data.IterableDataset):
                     target = torch.cat((target, stack), 0)
 
             target = target.transpose(1, 3).transpose(2, 4)
-            # target = target[..., :10]
+            target = target[..., :self.levels]
             target = np.reshape(target, (self.batch_size, target.shape[1], target.shape[2], -1))
             target = target.transpose(1, 2).transpose(1, 3)
             
