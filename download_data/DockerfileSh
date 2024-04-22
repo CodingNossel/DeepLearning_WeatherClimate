@@ -1,0 +1,5 @@
+FROM ubuntu:latest
+RUN apt-get update && apt-get install -y bash git python3 pip
+WORKDIR /code
+COPY nctozarr.sh .
+RUN ./nctozarr.sh
