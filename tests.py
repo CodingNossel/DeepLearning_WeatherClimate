@@ -1,5 +1,5 @@
-from unet/MarsDataset import MarsDataset, create_one_demension_normalized_tensor, create_denormalized_matrix_from_tensor
 import torch.utils.data
+from unet.MarsDataset import MarsDataset
 
 if __name__ == "__main__":
     # testdata = ['data/beta.zarr']
