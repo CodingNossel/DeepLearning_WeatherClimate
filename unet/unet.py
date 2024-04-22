@@ -1,7 +1,6 @@
 import os
 import torch
 from torch.nn import Conv2d, MaxPool2d, BatchNorm2d, ConvTranspose2d, ReLU, Module, Sequential
-from torch.utils.data import random_split
 
 from MarsDataset import MarsDataset
 
@@ -112,9 +111,9 @@ class UNet(Module):
         return x
 
 
-DATASET_PATH = os.environ.get("PATH_DATASETS", "data/my27.zarr")
-CHECKPOINT_PATH = os.environ.get("PATH_CHECKPOINT", "saved_models/unet/")
-EPOCHS = 15
+DATASET_PATH = os.environ.get("PATH_DATASETS", "/data/mars/")
+CHECKPOINT_PATH = os.environ.get("PATH_CHECKPOINT", "/data/mars/")
+EPOCHS = 50
 LEARNING_RATE = 0.01
 AVAIL_GPUS = min(1, torch.cuda.device_count())
 BATCH_SIZE = 256 if AVAIL_GPUS else 64
@@ -123,7 +122,8 @@ device = torch.device('cuda' if AVAIL_GPUS else 'cpu')
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-dataset = MarsDataset(path_file=DATASET_PATH, batch_size=BATCH_SIZE, level_from_bottom=35)
+
+dataset = MarsDataset(path_file=DATASET_PATH+"train.zarr", batch_size=BATCH_SIZE, level_from_bottom=35)
 # train_len = int(len(dataset) * 0.7)
 # test_len = len(dataset) - train_len
 # train, test = random_split(dataset, [train_len, test_len], generator=torch.Generator().manual_seed(42))
@@ -136,6 +136,7 @@ criterion = torch.nn.CrossEntropyLoss()
 
 for epoch in range(EPOCHS):
     print("Start Epoch {}.".format(epoch + 1))
+    model.train()
     epoch_loss = 0
     last_batch = None
     first = True
@@ -150,6 +151,9 @@ for epoch in range(EPOCHS):
         optimizer.step()
         epoch_loss += loss.detach().item()
     epoch_loss /= len(dataset)
+
+    model.eval()
+
     print("Epoch {}. Loss: {:.4f}.".format(epoch + 1, epoch_loss))
 
 torch.save(model.state_dict(), CHECKPOINT_PATH + "model.pt")
