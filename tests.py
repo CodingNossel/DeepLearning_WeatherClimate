@@ -1,11 +1,13 @@
+import numpy as np
 import torch.utils.data
 from unet.MarsDataset import MarsDataset, create_denormalized_matrix_from_tensor, denormalize_temp, denormalize_wind
+from visualisation import heat_plotting
 
 if __name__ == "__main__":
     # testdata = ['data/beta.zarr']
     # ds = MarsDatasetArray(testdata, 20)
     testdata = 'data/my27.zarr'
-    ds = MarsDataset(testdata, 20, 5)
+    ds = MarsDataset(testdata, 20, 10)
 
     loader_params = {'batch_size': None, 'batch_sampler': None, 'shuffle': False, 'num_workers': 4, 'pin_memory': True}
     data_loader = torch.utils.data.DataLoader(ds, **loader_params, sampler=None)
@@ -16,13 +18,23 @@ if __name__ == "__main__":
         print(source.shape)
         print(target.shape)
         if bidx == 2:
-            for batch in source:
-                matrix = create_denormalized_matrix_from_tensor(batch, 5)
-                print(f"Temp: {denormalize_temp(batch[0][0][0])} and {matrix[0][0][0][0]}")
-                print(f"Wind: {denormalize_wind(batch[5][0][0])} and {matrix[0][0][1][0]}")
-                print(f"Wind: {denormalize_wind(batch[10][0][0])} and {matrix[0][0][2][0]}")
-                print(batch[:,0,0])
-                print(matrix[0,0])
+            for id, batch in enumerate(source):
+                # matrix = create_denormalized_matrix_from_tensor(batch, 5)
+                # print(f"Temp: {denormalize_temp(batch[0][0][0])} and {matrix[0][0][0][0]}")
+                # print(f"Wind: {denormalize_wind(batch[5][0][0])} and {matrix[0][0][1][0]}")
+                # print(f"Wind: {denormalize_wind(batch[10][0][0])} and {matrix[0][0][2][0]}")
+                # print(batch[:,0,0])
+                # print(matrix[0,0])
+                if id == 2:
+                    calc = batch
+                    batch = batch.transpose(0, 1).transpose(1, 2)
+                    batch = np.reshape(batch, (36, 72, 3, 10))
+                    heat_plotting(batch, "Temp_source", 0, 0)
+
+
+                    matrix = create_denormalized_matrix_from_tensor(calc, 10)
+                    heat_plotting(matrix, "Temp", 0, 0)
+
         ## Iteriert über jeden Zeitschritt. Hier können source[i] und target[i] aufgerufen werden.
         """ for i in range(source.shape[0]):
             print(source[i].shape)

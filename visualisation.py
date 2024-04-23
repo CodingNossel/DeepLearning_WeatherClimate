@@ -2,9 +2,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 import torch
-
-t_size = (36,72,3,10)
-rndm_tensor = torch.rand(t_size)
+import os
 
 def heat_plotting(tensor, title = "Temperatur", value = 0, level = 0):
     """Plotting a heatmap of a level with it's values in specific dimensions
@@ -18,7 +16,8 @@ def heat_plotting(tensor, title = "Temperatur", value = 0, level = 0):
     sns.set_theme(style="darkgrid")
     df = pd.DataFrame(tensor[:,:,value,level].numpy())
     sns.heatmap(df)
+    output_dir = "visualizations_output"
+    os.makedirs(output_dir, exist_ok=True)
     plt.title(title)
-    plt.savefig(title+'_heatmap.png')
-
-heat_plotting(rndm_tensor)
+    plt.savefig(os.path.join(output_dir, title + '_heatmap.png'))
+    plt.close()

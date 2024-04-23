@@ -7,3 +7,4 @@ __pycache__
 saved_models
 lightning_logs
 .DS_Store
+visualizations_output
