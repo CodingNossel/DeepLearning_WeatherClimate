@@ -376,7 +376,7 @@ def create_one_demension_normalized_tensor(matrix):
 def create_denormalized_matrix_from_tensor(vector, level):
     """
     Creates a 4D Matrix from a 3D normalized matrix with the shape [3*level, 36, 72] 
-    return a 4D matrix with the shape [36, 70, 3, level]
+    return a 4D matrix with the shape [36, 72, 3, level]
     """
     vector = vector.transpose(0, 1).transpose(1, 2)
     vector = np.reshape(vector, (36, 72, 3, level))
