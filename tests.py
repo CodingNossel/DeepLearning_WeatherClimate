@@ -1,5 +1,5 @@
 import torch.utils.data
-from unet.MarsDataset import MarsDataset, create_denormalized_matrix_from_tensor
+from unet.MarsDataset import MarsDataset, create_denormalized_matrix_from_tensor, denormalize_temp, denormalize_wind
 
 if __name__ == "__main__":
     # testdata = ['data/beta.zarr']
@@ -15,11 +15,14 @@ if __name__ == "__main__":
         print("Batch Index:", bidx)
         print(source.shape)
         print(target.shape)
-        # if bidx == 2:
-        #     for batch in source:
-        #         matrix = create_denormalized_matrix_from_tensor(batch, 5)
-        #         print(batch[0][0])
-        #         print(matrix[0][0])
+        if bidx == 2:
+            for batch in source:
+                matrix = create_denormalized_matrix_from_tensor(batch, 5)
+                print(f"Temp: {denormalize_temp(batch[0][0][0])} and {matrix[0][0][0][0]}")
+                print(f"Wind: {denormalize_wind(batch[5][0][0])} and {matrix[0][0][1][0]}")
+                print(f"Wind: {denormalize_wind(batch[10][0][0])} and {matrix[0][0][2][0]}")
+                print(batch[:,0,0])
+                print(matrix[0,0])
         ## Iteriert über jeden Zeitschritt. Hier können source[i] und target[i] aufgerufen werden.
         """ for i in range(source.shape[0]):
             print(source[i].shape)
