@@ -54,11 +54,120 @@ class MarsDataset(torch.utils.data.IterableDataset):
                 torch.tensor(np.array([normalize_wind(x) for x in self.sources['u'][idx_t]])),
                 torch.tensor(np.array([normalize_wind(x) for x in self.sources['v'][idx_t]]))
             ], 1)
-            target = target.transpose(1, 3).transpose(2, 4)
-            target = target[..., :self.levels]
-            target = np.reshape(target, (self.batch_size, target.shape[1], target.shape[2], -1))
-            target = target.transpose(1, 2).transpose(1, 3)
+
+            # print("----- Unedited Tensor -----")
+            # print(f"First Temp {target[0][0][0][10][0]}")
+            # print(f"Second {target[0][0][1][10][0]}")
+            # print(f"Third {target[0][0][2][10][0]}")
+            # print(f"First Wind {target[0][1][0][10][0]}")
+            # print(f"Second Wind {target[0][1][1][10][0]}")
+            # print(f"Third Wind {target[0][1][2][10][0]}")
+            # print(f"First Wind other direction {target[0][2][0][10][0]}")
+            # print(f"Second {target[0][2][1][10][0]}")
+            # print(f"Third {target[0][2][2][10][0]}")
+
+            target = target[:, :, :10, :, :]
+            # print("----- Trimmed Tensor -----")
+            # print(target.shape)
+            # print(f"First Temp {target[0][0][0][10][0]}")
+            # print(f"Second {target[0][0][1][10][0]}")
+            # print(f"Third {target[0][0][2][10][0]}")
+            # print(f"First Wind {target[0][1][0][10][0]}")
+            # print(f"Second Wind {target[0][1][1][10][0]}")
+            # print(f"Third Wind {target[0][1][2][10][0]}")
+            # print(f"First Wind other direction {target[0][2][0][10][0]}")
+            # print(f"Second {target[0][2][1][10][0]}")
+            # print(f"Third {target[0][2][2][10][0]}")
+
+            # target = target.transpose(1, 3).transpose(2, 4)
+            # print(f"----- Reshaped Tensor I -----")
+            # print(f"First Temp {target[0][0][0][0][0]}")
+            # print(f"Second {target[0][0][0][0][1]}")
+            # print(f"Third {target[0][0][0][0][2]}")
+            # print(f"First Wind {target[0][0][0][1][0]}")
+            # print(f"Second Wind {target[0][0][0][1][1]}")
+            # print(f"Third Wind {target[0][0][0][1][2]}")
+            # print(f"First Wind other direction {target[0][0][0][2][0]}")
+            # print(f"Second {target[0][0][0][2][1]}")
+            # print(f"Third {target[0][0][0][2][2]}")
+
+            # target = target[..., :self.levels]
+            # print(f"----- Edited Tensor with the old Method -----")
+            # print(f"First Temp {target[0][0][0][0][0]}")
+            # print(f"Second {target[0][0][0][0][1]}")
+            # print(f"Third {target[0][0][0][0][2]}")
+            # print(f"First Wind {target[0][0][0][1][0]}")
+            # print(f"Second Wind {target[0][0][0][1][1]}")
+            # print(f"Third Wind {target[0][0][0][1][2]}")
+            # print(f"First Wind other direction {target[0][0][0][2][0]}")
+            # print(f"Second {target[0][0][0][2][1]}")
+            # print(f"Third {target[0][0][0][2][2]}")
+
+            ## potentiell bei level cutoff ein problem mit der datenstrucktur. Nach jedem reshape / transpose/ cutoff einmal checken, ob die daten in der richtigen stuktur sind
+            ## stickproben maschinell vergleichen 
+            # target = np.reshape(target, (self.batch_size, target.shape[1], target.shape[2], -1))
+            # print(f"----- Reshaped Tensor with smaller Shape -----")
+            # print(f"First Temp {target[0][0][0][0]}")
+            # print(f"Second {target[0][0][0][1]}")
+            # print(f"Third {target[0][0][0][2]}")
+            # print(f"First Wind {target[0][0][0][10]}")
+            # print(f"Second Wind {target[0][0][0][11]}")
+            # print(f"Third Wind {target[0][0][0][12]}")
+            # print(f"First Wind other direction {target[0][0][0][20]}")
+            # print(f"Second {target[0][0][0][21]}")
+            # print(f"Third {target[0][0][0][22]}")
+
+            # target = target.transpose(1, 2).transpose(1, 3)
+            # print(f"----- Final output Tensor -----")
+            # print(f"First Temp {target[0][0][0][0]}")
+            # print(f"Second {target[0][1][0][0]}")
+            # print(f"Third {target[0][2][0][0]}")
+            # print(f"First Wind {target[0][10][0][0]}")
+            # print(f"Second Wind {target[0][11][0][0]}")
+            # print(f"Third Wind {target[0][12][0][0]}")
+            # print(f"First Wind other direction {target[0][20][0][0]}")
+            # print(f"Second {target[0][21][0][0]}")
+            # print(f"Third {target[0][22][0][0]}")
             
+            target = np.reshape(target, (self.batch_size, -1, target.shape[3], target.shape[4]))
+            # print(f"----- Final output Tensor new -----")
+            # print(f"First Temp {target[0][0][10][0]}")
+            # print(f"Second {target[0][1][10][0]}")
+            # print(f"Third {target[0][2][10][0]}")
+            # print(f"First Wind {target[0][10][10][0]}")
+            # print(f"Second Wind {target[0][11][10][0]}")
+            # print(f"Third Wind {target[0][12][10][0]}")
+            # print(f"First Wind other direction {target[0][20][10][0]}")
+            # print(f"Second {target[0][21][10][0]}")
+            # print(f"Third {target[0][22][10][0]}")
+
+            # print(f"target before: {target.shape}")
+            # target = target.transpose(1, 2).transpose(2, 3)
+            # print(f"target after: {target.shape}")
+            # print(f"----- Reshaped Tensor with smaller Shape -----")
+            # print(f"First Temp {target[0][0][0][0]}")
+            # print(f"Second {target[0][0][0][1]}")
+            # print(f"Third {target[0][0][0][2]}")
+            # print(f"First Wind {target[0][0][0][10]}")
+            # print(f"Second Wind {target[0][0][0][11]}")
+            # print(f"Third Wind {target[0][0][0][12]}")
+            # print(f"First Wind other direction {target[0][0][0][20]}")
+            # print(f"Second {target[0][0][0][21]}")
+            # print(f"Third {target[0][0][0][22]}")
+
+            # target = np.reshape(target, (20, 36, 72, 3, 10))
+            # print(f"target after all: {target.shape}")
+            # print(f"----- Reshaped Tensor I -----")
+            # print(f"First Temp {target[0][0][0][0][0]}")
+            # print(f"Second {target[0][0][0][0][1]}")
+            # print(f"Third {target[0][0][0][0][2]}")
+            # print(f"First Wind {target[0][0][0][1][0]}")
+            # print(f"Second Wind {target[0][0][0][1][1]}")
+            # print(f"Third Wind {target[0][0][0][1][2]}")
+            # print(f"First Wind other direction {target[0][0][0][2][0]}")
+            # print(f"Second {target[0][0][0][2][1]}")
+            # print(f"Third {target[0][0][0][2][2]}")
+
             idx_t -= 1
             ## to transform back np.reshape(source, (8, 36, 72, 3, 70))
             yield source, target
@@ -329,12 +438,14 @@ def normalize_temp(temp):
     Normalizes temperature to 0-1 range
     """
     return (temp - 80) / 280
+    # return temp
 
 def normalize_wind(wind):
     """
     Normalizes wind to 0-1 range
     """
     return (wind + 200) / 450
+    # return wind
 
 def denormalize_temp(temp):
     """
@@ -370,12 +481,13 @@ def create_one_demension_normalized_tensor(matrix):
 
 ## Funktion zum Zurückformatieren in eine nicht normalisierte Matrix muss noch überarbeitet werden
 ## TODO
-def create_denormalized_matrix_from_tensor(vector):
+def create_denormalized_matrix_from_tensor(vector, level):
     """
     Creates a 4D matrix from a one-dimensional normalized tensor. 
     retrun a 4D matrix with the shape [3, 70, 36, 72]
+    retrun a 4D matrix with the shape [36, 70, 3, level]
     """
-    denormalized_matrix = torch.zeros(3, 70, 36, 72)
+    """ denormalized_matrix = torch.zeros(3, 70, 36, 72)
     for i in range(denormalized_matrix.shape[1] - 1):
         for j in range(denormalized_matrix.shape[2] - 1): 
             for k in range(denormalized_matrix.shape[3] - 1):
@@ -389,4 +501,8 @@ def create_denormalized_matrix_from_tensor(vector):
                 denormalized_matrix[0, i, j, k] = temp
                 denormalized_matrix[1, i, j, k] = u
                 denormalized_matrix[2, i, j, k] = v
-    return denormalized_matrix
+    return denormalized_matrix """
+    vector = vector.transpose(0, 1).transpose(1, 2)
+    vector = np.reshape(vector, (36, 72, 3, level))
+    return vector
+

@@ -1,11 +1,11 @@
 import torch.utils.data
-from unet.MarsDataset import MarsDataset
+from unet.MarsDataset import MarsDataset, create_denormalized_matrix_from_tensor
 
 if __name__ == "__main__":
     # testdata = ['data/beta.zarr']
     # ds = MarsDatasetArray(testdata, 20)
     testdata = 'data/my27.zarr'
-    ds = MarsDataset(testdata, 20, 10)
+    ds = MarsDataset(testdata, 20, 5)
 
     loader_params = {'batch_size': None, 'batch_sampler': None, 'shuffle': False, 'num_workers': 4, 'pin_memory': True}
     data_loader = torch.utils.data.DataLoader(ds, **loader_params, sampler=None)
@@ -15,6 +15,11 @@ if __name__ == "__main__":
         print("Batch Index:", bidx)
         print(source.shape)
         print(target.shape)
+        # if bidx == 2:
+        #     for batch in source:
+        #         matrix = create_denormalized_matrix_from_tensor(batch, 5)
+        #         print(batch[0][0])
+        #         print(matrix[0][0])
         ## Iteriert über jeden Zeitschritt. Hier können source[i] und target[i] aufgerufen werden.
         """ for i in range(source.shape[0]):
             print(source[i].shape)
