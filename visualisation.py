@@ -21,3 +21,20 @@ def heat_plotting(tensor, title = "Temperatur", value = 0, level = 0):
     plt.title(title)
     plt.savefig(os.path.join(output_dir, title + '_heatmap.png'))
     plt.close()
+
+
+def loss_or_acc_plotting(loss_acc, title = "Loss"):
+    """Plotting a loss over time
+
+    Args:
+        losses (list): List of losses or accuracies.
+        title (str, optional): Title of the plot. Defaults to "Loss".
+    """
+    sns.set_theme(style="darkgrid")
+    df = pd.DataFrame(loss_acc)
+    sns.lineplot(data=df)
+    output_dir = "visualizations_output"
+    os.makedirs(output_dir, exist_ok=True)
+    plt.title(title)
+    plt.savefig(os.path.join(output_dir, title + '_plot.png'))
+    plt.close()
