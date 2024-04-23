@@ -3,6 +3,7 @@ import torch
 import zarr
 import torch.utils.data
 
+
 class MarsDataset(torch.utils.data.IterableDataset):
     """
     Iterable Dataset for the OpenMARS weather Dataset.  
@@ -12,6 +13,7 @@ class MarsDataset(torch.utils.data.IterableDataset):
         batch_size (int): Batch size for each iteration.
         level_from_bottom (int, optional): Number of levels from the bottom. Defaults to 35.
     """
+
     def __init__(self, path_file, batch_size, level_from_bottom=35):
         super(MarsDataset, self).__init__()
         self.batch_size = batch_size
@@ -183,8 +185,9 @@ class MarsDataset(torch.utils.data.IterableDataset):
         else:
             # split workload
             temp = len(self)
-            per_worker = ((int(temp / float(worker_info.num_workers)) // self.batch_size) * self.batch_size) + self.batch_size
-            if worker_info.id+1 == worker_info.num_workers:
+            per_worker = ((int(temp / float(
+                worker_info.num_workers)) // self.batch_size) * self.batch_size) + self.batch_size
+            if worker_info.id + 1 == worker_info.num_workers:
                 # per_worker = int(temp // float(worker_info.num_workers)) - (int(temp // float(worker_info.num_workers)) % self.batch_size)
                 iter_end = int(temp)
                 iter_start = int(iter_end - per_worker)
@@ -194,20 +197,20 @@ class MarsDataset(torch.utils.data.IterableDataset):
                 iter_end = int(iter_start + per_worker)
 
         return iter_start, iter_end
-    
+
     def get_lat(self):
         """
         Returns the latitude array
         """
         return self.sources['lat']
-    
+
     def get_lev(self):
         """
         Returns the level array
         """
         # return self.sources['lev'][:10]
         return self.sources['lev']
-    
+
     def get_lon(self):
         """
         Returns the longitude array
@@ -224,6 +227,7 @@ class MarsDatasetArray(torch.utils.data.IterableDataset):
         batch_size (int): Batch size for each iteration.
         level_from_bottom (int, optional): Number of levels from the bottom. Defaults to 35.
     """
+
     def __init__(self, path_file, batch_size, level_from_bottom=35):
         super(MarsDatasetArray, self).__init__()
         self.batch_size = batch_size
@@ -274,7 +278,7 @@ class MarsDatasetArray(torch.utils.data.IterableDataset):
                     source = stack
                 else:
                     source = torch.cat((source, stack), 0)
-            
+
             source = source.transpose(1, 3).transpose(2, 4)
             source = source[..., :self.levels]
             source = np.reshape(source, (self.batch_size, source.shape[1], source.shape[2], -1))
@@ -301,7 +305,7 @@ class MarsDatasetArray(torch.utils.data.IterableDataset):
             target = target[..., :self.levels]
             target = np.reshape(target, (self.batch_size, target.shape[1], target.shape[2], -1))
             target = target.transpose(1, 2).transpose(1, 3)
-            
+
             idx_t -= 1
             ## to transform back np.reshape(source, (8, 36, 72, 3, 70))
             yield source, target
@@ -317,8 +321,9 @@ class MarsDatasetArray(torch.utils.data.IterableDataset):
         else:
             # split workload
             temp = len(self)
-            per_worker = ((int(temp / float(worker_info.num_workers)) // self.batch_size) * self.batch_size) + self.batch_size
-            if worker_info.id+1 == worker_info.num_workers:
+            per_worker = ((int(temp / float(
+                worker_info.num_workers)) // self.batch_size) * self.batch_size) + self.batch_size
+            if worker_info.id + 1 == worker_info.num_workers:
                 # per_worker = int(temp // float(worker_info.num_workers)) - (int(temp // float(worker_info.num_workers)) % self.batch_size)
                 iter_end = int(temp)
                 iter_start = int(iter_end - per_worker)
@@ -328,25 +333,26 @@ class MarsDatasetArray(torch.utils.data.IterableDataset):
                 iter_end = int(iter_start + per_worker)
 
         return iter_start, iter_end
-    
+
     def get_lat(self):
         """
         Returns the latitude array
         """
         return self.sources['lat']
-    
+
     def get_lev(self):
         """
         Returns the level array
         """
         # return self.sources['lev'][:10]
         return self.sources['lev']
-    
+
     def get_lon(self):
         """
         Returns the longitude array
         """
         return self.sources['lon']
+
 
 class MarsDatasetLevel(torch.utils.data.IterableDataset):
     def __init__(self, path_file, batch_size, levels):
@@ -402,8 +408,9 @@ class MarsDatasetLevel(torch.utils.data.IterableDataset):
         else:
             # split workload
             temp = len(self)
-            per_worker = ((int(temp / float(worker_info.num_workers)) // self.batch_size) * self.batch_size) + self.batch_size
-            if worker_info.id+1 == worker_info.num_workers:
+            per_worker = ((int(temp / float(
+                worker_info.num_workers)) // self.batch_size) * self.batch_size) + self.batch_size
+            if worker_info.id + 1 == worker_info.num_workers:
                 # per_worker = int(temp // float(worker_info.num_workers)) - (int(temp // float(worker_info.num_workers)) % self.batch_size)
                 iter_end = int(temp)
                 iter_start = int(iter_end - per_worker)
@@ -413,19 +420,19 @@ class MarsDatasetLevel(torch.utils.data.IterableDataset):
                 iter_end = int(iter_start + per_worker)
 
         return iter_start, iter_end
-    
+
     def get_lat(self):
         """
         Returns the latitude array
         """
         return self.sources['lat']
-    
+
     def get_lev(self):
         """
         Returns the level array
         """
         return self.sources['lev'][:self.levels]
-    
+
     def get_lon(self):
         """
         Returns the longitude array
@@ -438,14 +445,14 @@ def normalize_temp(temp):
     Normalizes temperature to 0-1 range
     """
     return (temp - 80) / 280
-    # return temp
+
 
 def normalize_wind(wind):
     """
     Normalizes wind to 0-1 range
     """
     return (wind + 200) / 450
-    # return wind
+
 
 def denormalize_temp(temp):
     """
@@ -460,6 +467,7 @@ def denormalize_wind(wind):
     """
     return (wind * 450) - 200
 
+
 def create_one_demension_normalized_tensor(matrix):
     """
     Creates a one-dimensional normalized tensor for a given 4D matrix. 
@@ -468,7 +476,7 @@ def create_one_demension_normalized_tensor(matrix):
     """
     normal_flat = torch.tensor([], dtype=torch.float32)
     for i in range(matrix.shape[1] - 1):
-        for j in range(matrix.shape[2] - 1): 
+        for j in range(matrix.shape[2] - 1):
             for k in range(matrix.shape[3] - 1):
                 temp = matrix[0, i, j, k].item()
                 u = matrix[1, i, j, k].item()
@@ -478,6 +486,7 @@ def create_one_demension_normalized_tensor(matrix):
                 norm_v = normalize_wind(v)
                 normal_flat = torch.cat((normal_flat, torch.tensor([norm_temp, norm_u, norm_v])), dim=0)
     return normal_flat
+
 
 ## Funktion zum Zurückformatieren in eine nicht normalisierte Matrix muss noch überarbeitet werden
 ## TODO
@@ -489,9 +498,10 @@ def create_denormalized_matrix_from_tensor(vector, level):
     """
     """ denormalized_matrix = torch.zeros(3, 70, 36, 72)
     for i in range(denormalized_matrix.shape[1] - 1):
-        for j in range(denormalized_matrix.shape[2] - 1): 
+        for j in range(denormalized_matrix.shape[2] - 1):
             for k in range(denormalized_matrix.shape[3] - 1):
-                idx = i * denormalized_matrix.shape[2] + denormalized_matrix.shape[3] * j + denormalized_matrix.shape[3] * k
+                idx = i * denormalized_matrix.shape[2] + denormalized_matrix.shape[3] * j + denormalized_matrix.shape[
+                    3] * k
                 norm_temp = vector[idx * 3]
                 norm_u = vector[idx * 3 + 1]
                 norm_v = vector[idx * 3 + 2]

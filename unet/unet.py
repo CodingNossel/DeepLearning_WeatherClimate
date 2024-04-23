@@ -1,7 +1,6 @@
 import os
 import torch
 from torch.nn import Conv2d, MaxPool2d, BatchNorm2d, ConvTranspose2d, ReLU, Module, Sequential
-
 from MarsDataset import MarsDataset
 
 
@@ -13,16 +12,17 @@ class Encoder(Module):
         inputs (int): Number of input channels/features.
         kernel_size (int or tuple): Size of the convolutional kernels.
     """
+
     def __init__(self, inputs, kernel_size):
         super().__init__()
         self.conv1 = Sequential(
-            Conv2d(in_channels=inputs, out_channels=inputs, kernel_size=kernel_size),
+            Conv2d(in_channels=inputs, out_channels=inputs, kernel_size=kernel_size, padding=1),
             BatchNorm2d(num_features=inputs),
             ReLU(inplace=True)
         )
         self.conv2 = Sequential(
-            Conv2d(in_channels=inputs, out_channels=inputs*2, kernel_size=kernel_size),
-            BatchNorm2d(num_features=inputs*2),
+            Conv2d(in_channels=inputs, out_channels=inputs * 2, kernel_size=kernel_size, padding=1),
+            BatchNorm2d(num_features=inputs * 2),
             ReLU(inplace=True)
         )
         self.pooling = MaxPool2d(kernel_size=(2, 2))
@@ -42,16 +42,17 @@ class Decoder(Module):
         inputs (int): Number of input channels/features.
         kernel_size (int or tuple): Size of the convolutional kernels.
     """
+
     def __init__(self, inputs, kernel_size):
         super().__init__()
         self.up_conv = ConvTranspose2d(inputs, inputs // 2, kernel_size=(2, 2), stride=(2, 2))
         self.conv1 = Sequential(
-            Conv2d(in_channels=inputs // 2, out_channels=inputs // 2, kernel_size=kernel_size),
+            Conv2d(in_channels=inputs // 2, out_channels=inputs // 2, kernel_size=kernel_size, padding=1),
             BatchNorm2d(num_features=inputs // 2),
             ReLU(inplace=True)
         )
         self.conv2 = Sequential(
-            Conv2d(in_channels=inputs // 2, out_channels=inputs // 2, kernel_size=kernel_size),
+            Conv2d(in_channels=inputs // 2, out_channels=inputs // 2, kernel_size=kernel_size, padding=1),
             BatchNorm2d(num_features=inputs // 2),
             ReLU(inplace=True)
         )
@@ -70,45 +71,70 @@ class UNet(Module):
     Args:
         kernel_size (int or tuple): Size of the convolutional kernels.
     """
-    def __init__(self, kernel_size):
+
+    def __init__(self, kernel_size, level):
         super(UNet, self).__init__()
-        self.enc1 = Encoder(105, kernel_size)
-        self.enc2 = Encoder(210, kernel_size)
-        self.enc3 = Encoder(420, kernel_size)
-        self.enc4 = Encoder(840, kernel_size)
+        self.conv0 = Sequential(
+            Conv2d(in_channels=level, out_channels=level, kernel_size=(5, 5), padding=2),
+            BatchNorm2d(num_features=level),
+            ReLU(inplace=True)
+        )
+        self.enc1 = Encoder(level, kernel_size)
+        self.enc2 = Encoder(level*2, kernel_size)
         self.conv1 = Sequential(
-            Conv2d(in_channels=840, out_channels=840, kernel_size=kernel_size),
-            BatchNorm2d(num_features=840),
+            Conv2d(in_channels=level*4, out_channels=level*4, kernel_size=kernel_size, padding=1),
+            BatchNorm2d(num_features=level*4),
             ReLU(inplace=True)
         )
         self.conv2 = Sequential(
-            Conv2d(in_channels=840, out_channels=840, kernel_size=kernel_size),
-            BatchNorm2d(num_features=840),
+            Conv2d(in_channels=level*4, out_channels=level*4, kernel_size=kernel_size, padding=1),
+            BatchNorm2d(num_features=level*4),
             ReLU(inplace=True)
         )
-        self.dec1 = Decoder(1680, kernel_size)
-        self.dec2 = Decoder(840, kernel_size)
-        self.dec3 = Decoder(420, kernel_size)
-        self.dec4 = Decoder(210, kernel_size)
+        self.dec1 = Decoder(level*4, kernel_size)
+        self.dec2 = Decoder(level*2, kernel_size)
         self.conv3 = Sequential(
-            Conv2d(in_channels=105, out_channels=105, kernel_size=(1, 1)),
-            BatchNorm2d(num_features=105),
+            Conv2d(in_channels=level, out_channels=level, kernel_size=(1, 1)),
+            BatchNorm2d(num_features=level),
             ReLU(inplace=True)
         )
 
     def forward(self, x):
         x = self.enc1(x)
         x = self.enc2(x)
-        #x = self.enc3(x)
-        #x = self.enc4(x)
-        #x = self.conv1(x)
-        #x = self.conv2(x)
-        #x = self.dec1(x)
-        #x = self.dec2(x)
-        x = self.dec3(x)
-        x = self.dec4(x)
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.dec1(x)
+        x = self.dec2(x)
         x = self.conv3(x)
         return x
+
+
+def calculate_relative_difference(matrix1, matrix2):
+    difference = torch.abs(matrix1 - matrix2)
+    relative_difference = difference / matrix2
+    return relative_difference
+
+
+def evaluate(source, calculation, target):
+    """
+    args:
+        source: Source Matrix
+        calculation: Calculated Matrix
+        target: Target Matrix
+    returns:
+        difference between calculation and target in perspective to the source
+        0: Worse than or equal to source
+        0-1: Better than source
+        1: Equal to traget
+    """
+    difference_source_target = calculate_relative_difference(source, target)
+    difference_calculation_target = calculate_relative_difference(calculation, target)
+    diff = 1 - torch.mean(difference_calculation_target).item() / torch.mean(difference_source_target).item()
+    if diff >= 0:
+        return diff
+    else:
+        return 0
 
 
 DATASET_PATH = os.environ.get("PATH_DATASETS", "/data/mars/")
@@ -122,13 +148,10 @@ device = torch.device('cuda' if AVAIL_GPUS else 'cpu')
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
+dataset = MarsDataset(path_file=DATASET_PATH+"train.zarr", batch_size=BATCH_SIZE, level_from_bottom=10)
+dataset_test = MarsDataset(path_file=DATASET_PATH+"test.zarr", batch_size=BATCH_SIZE, level_from_bottom=10)
 
-dataset = MarsDataset(path_file=DATASET_PATH+"train.zarr", batch_size=BATCH_SIZE, level_from_bottom=35)
-# train_len = int(len(dataset) * 0.7)
-# test_len = len(dataset) - train_len
-# train, test = random_split(dataset, [train_len, test_len], generator=torch.Generator().manual_seed(42))
-
-model = UNet(kernel_size=(1, 1))
+model = UNet(kernel_size=(3, 3), level=10*3)
 model.to(device=device)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
@@ -140,9 +163,7 @@ for epoch in range(EPOCHS):
     epoch_loss = 0
     last_batch = None
     first = True
-    count = 1
     for batch in dataset:
-        count += 1
         optimizer.zero_grad()
         prediction = model(batch[0])
         label = batch[1]
@@ -153,10 +174,16 @@ for epoch in range(EPOCHS):
     epoch_loss /= len(dataset)
 
     model.eval()
+    accuracy = 0
+    for batch in dataset_test:
+        prediction = model(batch[0])
+        accuracy += evaluate(batch[0], prediction, batch[1])
+    accuracy_percent = accuracy / len(dataset_test)
 
-    print("Epoch {}. Loss: {:.4f}.".format(epoch + 1, epoch_loss))
+    print("Epoch {}. Loss: {:.4f}. Accuracy: {:.4f}. Accuracy (%): {:.4f}.".format(epoch + 1, epoch_loss, accuracy,
+                                                                                   accuracy_percent))
 
-torch.save(model.state_dict(), CHECKPOINT_PATH + "model.pt")
+torch.save(model.state_dict(), CHECKPOINT_PATH + "model_unet.pt")
 
 # loading model:
 # model=UNet(input_size=(1,1))
