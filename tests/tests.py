@@ -2,7 +2,7 @@ import torch.utils.data
 from unet.MarsDataset import MarsDataset
 import numpy as np
 from unet.MarsDataset import create_denormalized_matrix_from_tensor
-from visualisation import heat_plotting
+from visualizations.visualisation import heat_plotting
 
 if __name__ == "__main__":
     # testdata = ['data/beta.zarr']

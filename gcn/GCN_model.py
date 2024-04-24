@@ -24,9 +24,9 @@ from unet.MarsDataset import MarsDataset
 AVAIL_GPUS = min(1, torch.cuda.device_count())
 BATCH_SIZE = 256 if AVAIL_GPUS else 64
 # Path to the folder where the datasets are/should be downloaded
-DATASET_PATH = os.environ.get("PATH_DATASETS", "data/")
+DATASET_PATH = os.environ.get("PATH_DATASETS", "../data/")
 # Path to the folder where the pretrained models are saved
-CHECKPOINT_PATH = os.environ.get("PATH_CHECKPOINT", "saved_models/GNNs/")
+CHECKPOINT_PATH = os.environ.get("PATH_CHECKPOINT", "../saved_models/GNNs/")
 
 # Setting the seed
 L.seed_everything(42)
@@ -186,7 +186,7 @@ def print_results(result_dict):
         print("Val accuracy:   %4.2f%%" % (100.0 * result_dict["val"]))
     print("Test accuracy:  %4.2f%%" % (100.0 * result_dict["test"]))
 
-data = MarsDataset("data/test.zarr", 8)
+data = MarsDataset("../data/test.zarr", 8)
 
 node_gnn_model, node_gnn_result = train_node_classifier(
     model_name="GNN", layer_name="GCN", dataset=data, c_hidden=16, num_layers=2, dp_rate=0.1

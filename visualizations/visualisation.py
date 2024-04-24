@@ -28,7 +28,7 @@ def heat_plotting(tensor, title="Temperatur", value=0, level=0):
     plt.close()
 
 
-def loss_or_acc_plotting(loss_acc, title = "Loss"):
+def loss_or_acc_plotting(loss_acc, title="Loss"):
     """Plotting a loss over time
 
     Args:

@@ -6,7 +6,7 @@ from torchvision import datasets, transforms
 import zarr 
 import numpy as np
 
-zarr_data = zarr.open('data/test.zarr', mode='r')
+zarr_data = zarr.open('../data/test.zarr', mode='r')
 
 print(zarr_data.len)
 
