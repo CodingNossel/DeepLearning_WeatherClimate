@@ -1,6 +1,7 @@
-import numpy as np
 import torch.utils.data
-from unet.MarsDataset import MarsDataset, create_denormalized_matrix_from_tensor, denormalize_temp, denormalize_wind
+from unet.MarsDataset import MarsDataset
+import numpy as np
+from unet.MarsDataset import create_denormalized_matrix_from_tensor
 from visualisation import heat_plotting
 
 if __name__ == "__main__":
@@ -31,7 +32,6 @@ if __name__ == "__main__":
                     batch = np.reshape(batch, (36, 72, 3, 10))
                     heat_plotting(batch, "Temp_source", 0, 0)
 
-
                     matrix = create_denormalized_matrix_from_tensor(calc, 10)
                     heat_plotting(matrix, "Temp", 0, 0)
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         # print(target[0][0][0][140])
         # print(target[0][0][0][0][1])
         # print(target[0][0][0][1][0])
-    
+
 ## values for normalisation
 # max_temp = tensor(261.5564)  # 262.3379211425781     # 280
 # min_temp = tensor(109.9754)  # 105.26789093017578    # 80
