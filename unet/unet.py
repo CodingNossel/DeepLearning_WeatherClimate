@@ -13,10 +13,9 @@ class Encoder(Module):
 
     Args:
         inputs (int): Number of input channels/features.
-        kernel_size (int or tuple): Size of the convolutional kernels.
     """
 
-    def __init__(self, inputs, kernel_size):
+    def __init__(self, inputs):
         super().__init__()
         self.conv1 = Sequential(
             Conv2d(in_channels=inputs, out_channels=inputs, kernel_size=(7, 7)),
@@ -45,10 +44,9 @@ class Decoder(Module):
 
     Args:
         inputs (int): Number of input channels/features.
-        kernel_size (int or tuple): Size of the convolutional kernels.
     """
 
-    def __init__(self, inputs, kernel_size):
+    def __init__(self, inputs):
         super().__init__()
         self.up_conv = ConvTranspose2d(inputs, inputs // 2, kernel_size=(2, 2), stride=(2, 2))
         self.conv1 = Sequential(
@@ -73,33 +71,30 @@ class Decoder(Module):
 
 class UNet(Module):
     """
-    Implementation of a U-Net architecture for semantic segmentation.
-
-    Args:
-        kernel_size (int or tuple): Size of the convolutional kernels.
+    Implementation of a network architecture for semantic segmentation.
     """
 
-    def __init__(self, kernel_size, level):
+    def __init__(self, level):
         super(UNet, self).__init__()
         self.conv0 = Sequential(
             Conv2d(in_channels=level, out_channels=level, kernel_size=(5, 5)),
             BatchNorm2d(num_features=level),
             ReLU(inplace=True)
         )
-        self.enc1 = Encoder(level, kernel_size)
-        self.enc2 = Encoder(level * 2, kernel_size)
+        self.enc1 = Encoder(level)
+        self.enc2 = Encoder(level * 2)
         self.conv1 = Sequential(
-            Conv2d(in_channels=level * 4, out_channels=level * 4, kernel_size=kernel_size),
+            Conv2d(in_channels=level * 4, out_channels=level * 4, kernel_size=(3, 3)),
             BatchNorm2d(num_features=level * 4),
             ReLU(inplace=True)
         )
         self.conv2 = Sequential(
-            Conv2d(in_channels=level * 4, out_channels=level * 4, kernel_size=kernel_size),
+            Conv2d(in_channels=level * 4, out_channels=level * 4, kernel_size=(3, 3)),
             BatchNorm2d(num_features=level * 4),
             ReLU(inplace=True)
         )
-        self.dec1 = Decoder(level * 4, kernel_size)
-        self.dec2 = Decoder(level * 2, kernel_size)
+        self.dec1 = Decoder(level * 4)
+        self.dec2 = Decoder(level * 2)
         self.conv3 = Sequential(
             Conv2d(in_channels=level, out_channels=level, kernel_size=(7, 7)),
             BatchNorm2d(num_features=level),
@@ -166,7 +161,7 @@ dataset = MarsDataset(path_file=DATASET_PATH + "train.zarr", batch_size=BATCH_SI
 dataset_test = MarsDataset(path_file=DATASET_PATH + "test.zarr", batch_size=BATCH_SIZE,
                            level_from_bottom=LEVEL_FROM_BOTTOM)
 
-model = UNet(kernel_size=(3, 3), level=LEVEL_FROM_BOTTOM * 3)
+model = UNet(level=LEVEL_FROM_BOTTOM * 3)
 model.to(device=device)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
@@ -198,19 +193,4 @@ for epoch in range(EPOCHS):
     print("Epoch {}. Loss: {:.4f}. Accuracy: {:.4f}. Accuracy (%): {:.4f}.".format(epoch + 1, epoch_loss, accuracy,
                                                                                    accuracy_percent))
 
-# count = 1
-# for e in dataset_test:
-#    prediction = model(e[0])
-#    batch = prediction[0].transpose(0, 1).transpose(1, 2)
-#    batch = np.reshape(batch.detach(), (36, 72, 3, 10))
-#    heat_plotting(batch, "p" + str(count), 0, 0)
-#    count += 1
-#    if count == 6:
-#        exit()
-
-torch.save(model.state_dict(), CHECKPOINT_PATH + "new_unet.pt")
-
-# loading model:
-# model=UNet(input_size=(1,1))
-# model.load_state_dict(torch.load(CHECKPOINT_PATH))
-# model.eval()
+torch.save(model.state_dict(), CHECKPOINT_PATH + "network.pt")s
