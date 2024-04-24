@@ -1,7 +1,7 @@
 import torch.utils.data
-from unet.MarsDataset import MarsDataset
+from dataloader.MarsDataset import MarsDataset
 import numpy as np
-from unet.MarsDataset import create_denormalized_matrix_from_tensor
+from dataloader.MarsDataset import create_denormalized_matrix_from_tensor
 from visualizations.visualisation import heat_plotting
 
 if __name__ == "__main__":

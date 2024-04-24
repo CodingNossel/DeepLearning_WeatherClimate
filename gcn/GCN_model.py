@@ -19,7 +19,7 @@ import torch_geometric.nn as geom_nn
 # PL callbacks
 from lightning.pytorch.callbacks import ModelCheckpoint
 
-from unet.MarsDataset import MarsDataset
+from dataloader.MarsDataset import MarsDataset
 
 AVAIL_GPUS = min(1, torch.cuda.device_count())
 BATCH_SIZE = 256 if AVAIL_GPUS else 64
