@@ -9,3 +9,4 @@ lightning_logs
 .DS_Store
 visualizations/visualizations_output
 /evaluation/visualizations_output
+visualizations_output/
