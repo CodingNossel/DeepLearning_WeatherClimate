@@ -8,3 +8,4 @@ saved_models
 lightning_logs
 .DS_Store
 visualizations/visualizations_output
+/evaluation/visualizations_output
