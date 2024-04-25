@@ -17,7 +17,6 @@ def heat_plotting(tensor, title="Temperatur", value=0, level=0):
     """
     sns.set_theme(style="darkgrid")
     df = pd.DataFrame(tensor[:, :, value, level].numpy())
-    print(df)
     matplotlib.use('TkAgg')
     sns.heatmap(df)
     output_dir = "visualizations_output"
