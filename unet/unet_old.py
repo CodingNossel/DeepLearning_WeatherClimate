@@ -72,36 +72,26 @@ class UNet(Module):
     def __init__(self, level):
         super(UNet, self).__init__()
         self.conv0 = Sequential(
-            Conv2d(in_channels=level, out_channels=level*2, kernel_size=(5, 5)),
-            BatchNorm2d(num_features=level*2),
+            Conv2d(in_channels=level, out_channels=level, kernel_size=(5, 5)),
+            BatchNorm2d(num_features=level),
             ReLU(inplace=True)
         )
-        self.conv4 = Sequential(
-            Conv2d(in_channels=level*2, out_channels=level*4, kernel_size=(5, 5)),
-            BatchNorm2d(num_features=level*4),
-            ReLU(inplace=True)
-        )
-        self.enc1 = Encoder(level * 4)
-        self.enc2 = Encoder(level * 8)
+        self.enc1 = Encoder(level)
+        self.enc2 = Encoder(level * 2)
         self.conv1 = Sequential(
-            Conv2d(in_channels=level * 16, out_channels=level * 16, kernel_size=(3, 3)),
-            BatchNorm2d(num_features=level * 16),
+            Conv2d(in_channels=level * 4, out_channels=level * 4, kernel_size=(3, 3)),
+            BatchNorm2d(num_features=level * 4),
             ReLU(inplace=True)
         )
         self.conv2 = Sequential(
-            Conv2d(in_channels=level * 16, out_channels=level * 16, kernel_size=(3, 3)),
-            BatchNorm2d(num_features=level * 16),
+            Conv2d(in_channels=level * 4, out_channels=level * 4, kernel_size=(3, 3)),
+            BatchNorm2d(num_features=level * 4),
             ReLU(inplace=True)
         )
-        self.dec1 = Decoder(level * 16)
-        self.dec2 = Decoder(level * 8)
+        self.dec1 = Decoder(level * 4)
+        self.dec2 = Decoder(level * 2)
         self.conv3 = Sequential(
-            Conv2d(in_channels=level*4, out_channels=level*2, kernel_size=(7, 7)),
-            BatchNorm2d(num_features=level*2),
-            ReLU(inplace=True)
-        )
-        self.conv5 = Sequential(
-            Conv2d(in_channels=level*2, out_channels=level, kernel_size=(7, 7)),
+            Conv2d(in_channels=level, out_channels=level, kernel_size=(7, 7)),
             BatchNorm2d(num_features=level),
             ReLU(inplace=True)
         )
@@ -109,7 +99,6 @@ class UNet(Module):
     def forward(self, x):
         x = torch.nn.functional.pad(x, (2, 2, 2, 2), 'circular')
         x = self.conv0(x)
-        x = self.conv4(x)
         x = self.enc1(x)
         x = self.enc2(x)
         x = torch.nn.functional.pad(x, (1, 1, 1, 1), 'circular')
@@ -120,5 +109,4 @@ class UNet(Module):
         x = self.dec2(x)
         x = torch.nn.functional.pad(x, (3, 3, 3, 3), 'circular')
         x = self.conv3(x)
-        x = self.conv5(x)
         return x
